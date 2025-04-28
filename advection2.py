@@ -30,7 +30,7 @@ upper = 1
 dx = (upper - lower) / num_points
 grid = np.linspace(lower, upper, num_points)
 starting_vals = []
-
+exact_vals = []
 ######## Initial conditions Comment / Uncomment desired function type #######
 
 # Top hat
@@ -40,10 +40,19 @@ starting_vals = []
 #     else:
 #         starting_vals.append(0)
 
+# for point in grid:
+#     if point >= .8 and point <= 1.2:
+#         exact_vals.append(1)
+#     else:
+#         exact_vals.append(0)
+
 # cos wave
 for point in grid:
     starting_vals.append(math.cos(point*2*math.pi))
-    
+
+#Exact Solution
+for point in grid:
+    exact_vals.append(math.cos((point-.5)*2*math.pi))
 ########
 
 def Forward_Euler(function, current_solution, dx, dt, total_time_steps, spatial_method):
@@ -171,11 +180,11 @@ def RK_4(function, current_solution, dx, dt, total_time_steps, spatial_method):
             g2.append(current_solution[i]+.5*k2[i])
         for i in range(len(current_solution)):
             # Second Step
-            k3.append(dt*(current_solution[i] + dt/2*function(get_dfdx(dx, spatial_method, g2, i))))
+            k3.append(dt*(current_solution[i] + function(get_dfdx(dx, spatial_method, g2, i))))
             g3.append(current_solution[i] + k3[i])
         for i in range(len(current_solution)):
             # Third Step
-            k4.append(dt*(current_solution[i] + dt*function(get_dfdx(dx, spatial_method, k3, i))))
+            k4.append(dt*(current_solution[i] + function(get_dfdx(dx, spatial_method, g3, i))))
         for i in range(len(current_solution)):
             # Solve
             new_solution.append(current_solution[i] + (1/6)*(k1[i] + 2*k2[i] + 2*k3[i] + k4[i]))
@@ -229,10 +238,7 @@ BE_up = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=50
 BE_central = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='central')
 #FE_central = Forward_Euler(RHS_func, starting_vals, dx, dt=.0001, total_time_steps=50, spatial_method='central')
 
-#Exact Solution
-exact_vals = []
-for point in grid:
-    exact_vals.append(math.cos((point-.5)*2*math.pi))
+
 
 plt.figure(1)
 plt.plot(grid, starting_vals)
