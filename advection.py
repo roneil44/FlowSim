@@ -37,13 +37,13 @@ error = 100
 tolerance = 1e-12
 
 time_step1 = .001
-total_time1 = 2
+total_time1 = .5
 time = 0
 
 #Upwind spatial, forward Euler time
 solution1 = intial_values.copy()
 
-while time < total_time1:
+while time <= total_time1:
     new_solution = []
     
     # Upwind spatial, forward Euler time
@@ -73,7 +73,7 @@ time_step2 = .0001
 total_time2 = .04
 time = 0
 
-while time < total_time2:
+while time <= total_time2:
     
     # Empty array for new solution
     new_solution = []
@@ -111,7 +111,7 @@ time_step3 = .001
 total_time3 = .01
 time = 0
 
-while time < total_time3:
+while time <= total_time3:
     
     # Empty array for new solution
     new_solution = []
@@ -136,6 +136,56 @@ while time < total_time3:
     
     time += time_step3
     time = round(time, len(str(time_step3))-2)
+
+
+# Backward Euler, spatial upwinding
+solution4 = intial_values.copy()
+
+# reset time variables
+time_step4 = .001
+total_time4 = .5
+time = 0
+
+
+
+while time <= total_time3:
+    
+    # Empty array for new solution
+    new_solution = []
+    
+    for i in range(len(solution4)):
+        # Assumes constant grid spacing
+        delta = grid_locations[1] - grid_locations[0]
+
+        # Implicit solver parameters
+        tol = 1e-12
+        iteration = 0
+        
+        if i == 0:
+            #When i is at first index use downstream values
+            # Generate prediction for next time step
+            while True:
+                if iteration == 0:
+                    # First guess use forward euler
+                    guessed_solution = solution4[i] - (c*time_step4/delta) * (-solution4[i-1] + solution4[i])
+                else:
+                    # Otherwise use predictor corrector
+                    guessed_solution = guessed_solution - (c*time_step4/delta) * (-solution4[i] + solution4[i])
+
+            new_solution.append(solution4[i] - (c*time_step4/delta) * (-solution4[i] + solution4[i+1]))
+        else:
+            #Downstream calc
+            new_solution.append(solution4[i] - (c*time_step4/delta) * (-solution4[i] + solution4[i+1]))
+    
+    #Update grid_values with new solution
+    solution4 = new_solution
+
+    # Store intermediate solution
+    if time == total_time3/2:
+        solution4_5 = solution4[:]
+    
+    time += time_step4
+    time = round(time, len(str(time_step4))-2)
 
     
 
