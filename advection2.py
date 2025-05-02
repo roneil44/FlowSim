@@ -31,7 +31,7 @@ dx = (upper - lower) / num_points
 grid = np.linspace(lower, upper, num_points)
 starting_vals = []
 exact_vals = []
-######## Initial conditions Comment / Uncomment desired function type #######
+######## Initial conditions and Exact solutions Comment / Uncomment desired function type #######
 
 # Top hat
 # for point in grid:
