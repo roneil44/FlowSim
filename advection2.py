@@ -24,7 +24,7 @@ c = 1
 RHS_func = lambda dfdx: -c*dfdx
 
 #Initializations
-num_points = 200
+num_points = 100
 lower = 0
 upper = 1
 dx = (upper - lower) / num_points
@@ -33,7 +33,7 @@ starting_vals = []
 exact_vals = []
 ######## Initial conditions and Exact solutions Comment / Uncomment desired function type #######
 
-# Top hat
+#Top hat
 # for point in grid:
 #     if point >= .3 and point <= .7:
 #         starting_vals.append(1)
@@ -52,8 +52,8 @@ for point in grid:
 
 #Exact Solution
 for point in grid:
-    exact_vals.append(math.cos((point-.5)*2*math.pi))
-########
+    exact_vals.append(math.cos((point-(c/2))*2*math.pi))
+# ########
 
 def Forward_Euler(function, current_solution, dx, dt, total_time_steps, spatial_method):
     '''Computes a forward Euler solution with a step size of dt for the given number of
@@ -132,15 +132,17 @@ def Heuns(function, current_solution, dx, dt, total_time_steps, spatial_method):
 
     while t <= total_time_steps:
         #Create array to store intermediate solution
-        intermediate_solution = []
+        g_n = []
+        f_bar = []
         new_solution = []
         # Iterate through each point in current solution
         for i in range(len(current_solution)):
             #Compute first intermediate solution
-            intermediate_solution.append(current_solution[i] + dt/2*function(get_dfdx(dx, spatial_method, current_solution, i)))
+            g_n.append(function(get_dfdx(dx, spatial_method, current_solution, i)))
+            f_bar.append(current_solution[i] + dt*(g_n[i]))
         for j in range(len(current_solution)):
             #Compute final solution
-            new_solution.append(current_solution[j] + dt*function(get_dfdx(dx, spatial_method, intermediate_solution, j)))
+            new_solution.append(current_solution[j] + dt/2*(g_n[j] + function(get_dfdx(dx, spatial_method, f_bar, j))))
             
 
         # Update solution
@@ -170,21 +172,31 @@ def RK_4(function, current_solution, dx, dt, total_time_steps, spatial_method):
         k4 = []
         new_solution = []
         # Iterate through each point in current solution
+        # for i in range(len(current_solution)):
+        #     g1.append(function(get_dfdx(dx, spatial_method, current_solution, i)))
+        #     k1.append(current_solution[i] + dt/2*g1[i])
+        #     g2.append(function(get_dfdx(dx, spatial_method, k1, i)))
+        #     k2.append(current_solution[i] + dt/2*g2[i])
+        #     g3.append(function(get_dfdx(dx, spatial_method, k2, i)))
+        #     k3.append(current_solution[i] + dt*g2[i])
+        #     new_solution.append(current_solution[i] + dt/6*(g))
+
+
         for i in range(len(current_solution)):
             # First step
             k1.append(dt*(function(get_dfdx(dx, spatial_method, current_solution, i))))
             g1.append(current_solution[i]+.5*k1[i])
         for i in range(len(current_solution)):
             # First step
-            k2.append(dt*(current_solution[i] + function(get_dfdx(dx, spatial_method, g1, i))))
+            k2.append(dt*(function(get_dfdx(dx, spatial_method, g1, i))))
             g2.append(current_solution[i]+.5*k2[i])
         for i in range(len(current_solution)):
             # Second Step
-            k3.append(dt*(current_solution[i] + function(get_dfdx(dx, spatial_method, g2, i))))
+            k3.append(dt*(function(get_dfdx(dx, spatial_method, g2, i))))
             g3.append(current_solution[i] + k3[i])
         for i in range(len(current_solution)):
             # Third Step
-            k4.append(dt*(current_solution[i] + function(get_dfdx(dx, spatial_method, g3, i))))
+            k4.append(dt*(function(get_dfdx(dx, spatial_method, g3, i))))
         for i in range(len(current_solution)):
             # Solve
             new_solution.append(current_solution[i] + (1/6)*(k1[i] + 2*k2[i] + 2*k3[i] + k4[i]))
@@ -227,26 +239,53 @@ def get_dfdx(delta_x, scheme:str, values, i):
         raise SyntaxError(f"Invalid Spatial Derivative Scheme: {scheme} is not recognized")
     return dfdx
 
+def calculate_L2_error(exact_solution, estimate_solution):
+    # Assumes solutions have same length
+    error = 0
+    for i in range(len(exact_solution)):
+        error += abs(exact_solution[i] - estimate_solution[i])
+    return error
 
 
 ## Forward Euler Upwind
 
 FE_up = Forward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-RK_4_up = RK_4(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-Heuns_up = Heuns(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-BE_up = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-BE_central = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='central')
-#FE_central = Forward_Euler(RHS_func, starting_vals, dx, dt=.0001, total_time_steps=50, spatial_method='central')
+FE_up_error = calculate_L2_error(exact_vals, FE_up)
 
+RK_4_up = RK_4(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
+RK4_up_error = calculate_L2_error(exact_vals, RK_4_up)
+
+Heuns_up = Heuns(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
+Heuns_up_error = calculate_L2_error(exact_vals, Heuns_up)
+
+BE_up = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
+BE_up_error = calculate_L2_error(exact_vals, BE_up)
+
+BE_central = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='central')
+BE_central_error = calculate_L2_error(exact_vals, BE_central)
+
+#FE_central = Forward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=1000, spatial_method='central')
+
+error_test = calculate_L2_error(exact_vals, exact_vals)
+error_test2 = calculate_L2_error(exact_vals, starting_vals)
+error_test3 = calculate_L2_error(RK_4_up, Heuns_up)
+print(error_test)
+print(error_test2)
+print(f'Diff between Rk4 and Heuns {error_test3}')
 
 
 plt.figure(1)
 plt.plot(grid, starting_vals)
 plt.plot(grid, FE_up)
 plt.plot(grid, RK_4_up)
-plt.plot(grid, Heuns_up)
+plt.plot(grid, Heuns_up,linestyle='dashed')
 plt.plot(grid, BE_up)
 plt.plot(grid, BE_central)
 plt.plot(grid, exact_vals, '-k')
-plt.legend(['Initial Values', 'FE_Upwind','RK_4', 'Heuns', 'BE_Upwind','BE_Central', 'Exact Solution'])
+#
+plt.legend(['Initial Values', f'FE_Upwind error:{FE_up_error}',f'RK_4 error:{RK4_up_error}', f'Heuns error:{Heuns_up_error}', f'BE_Upwind error:{BE_up_error}', f'BE_Central error:{BE_central_error}', 'Exact Solution'])
+
+# plt.figure(2)
+# plt.plot(grid, FE_central)
+
 plt.show()

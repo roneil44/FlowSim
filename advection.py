@@ -148,44 +148,44 @@ time = 0
 
 
 
-while time <= total_time3:
+# while time <= total_time3:
     
-    # Empty array for new solution
-    new_solution = []
+#     # Empty array for new solution
+#     new_solution = []
     
-    for i in range(len(solution4)):
-        # Assumes constant grid spacing
-        delta = grid_locations[1] - grid_locations[0]
+#     for i in range(len(solution4)):
+#         # Assumes constant grid spacing
+#         delta = grid_locations[1] - grid_locations[0]
 
-        # Implicit solver parameters
-        tol = 1e-12
-        iteration = 0
+#         # Implicit solver parameters
+#         tol = 1e-12
+#         iteration = 0
         
-        if i == 0:
-            #When i is at first index use downstream values
-            # Generate prediction for next time step
-            while True:
-                if iteration == 0:
-                    # First guess use forward euler
-                    guessed_solution = solution4[i] - (c*time_step4/delta) * (-solution4[i-1] + solution4[i])
-                else:
-                    # Otherwise use predictor corrector
-                    guessed_solution = guessed_solution - (c*time_step4/delta) * (-solution4[i] + solution4[i])
+#         if i == 0:
+#             #When i is at first index use downstream values
+#             # Generate prediction for next time step
+#             while True:
+#                 if iteration == 0:
+#                     # First guess use forward euler
+#                     guessed_solution = solution4[i] - (c*time_step4/delta) * (-solution4[i-1] + solution4[i])
+#                 else:
+#                     # Otherwise use predictor corrector
+#                     guessed_solution = guessed_solution - (c*time_step4/delta) * (-solution4[i] + solution4[i])
 
-            new_solution.append(solution4[i] - (c*time_step4/delta) * (-solution4[i] + solution4[i+1]))
-        else:
-            #Downstream calc
-            new_solution.append(solution4[i] - (c*time_step4/delta) * (-solution4[i] + solution4[i+1]))
+#             new_solution.append(solution4[i] - (c*time_step4/delta) * (-solution4[i] + solution4[i+1]))
+#         else:
+#             #Downstream calc
+#             new_solution.append(solution4[i] - (c*time_step4/delta) * (-solution4[i] + solution4[i+1]))
     
-    #Update grid_values with new solution
-    solution4 = new_solution
+#     #Update grid_values with new solution
+#     solution4 = new_solution
 
-    # Store intermediate solution
-    if time == total_time3/2:
-        solution4_5 = solution4[:]
+#     # Store intermediate solution
+#     if time == total_time3/2:
+#         solution4_5 = solution4[:]
     
-    time += time_step4
-    time = round(time, len(str(time_step4))-2)
+#     time += time_step4
+#     time = round(time, len(str(time_step4))-2)
 
     
 
