@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 #Initilize all global variables
 x_max = 1
 y_max = 1
-number_x_points = 5
+number_x_points = 4
 number_y_points = 4
 
 ## Assign values to each global variable
@@ -72,7 +72,7 @@ for i in range(len(pressures)):
 #print(pressures)
 
 pressure_gradient = gradient(pressures, dx, dy)
-#print(pressure_gradient)
+print(pressure_gradient)
 
 plt.figure(1)
 plt.contourf(X_pressures, Y_pressures, pressures)
@@ -83,10 +83,13 @@ for i in range(len(u_vel)):
     for j in range(len(u_vel[0])):
         u_vel[i,j] = 1
         v_vel[i,j] = 1
-divergences = div(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
+divergences = div(u_vel, v_vel, dx, dy)
 print(divergences)
 # plt.show()
-
+v_vel = np.zeros((nx,ny))
+# Compute Laplacian of velocity arrays
+laplacian = lap(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
+print(laplacian)
 
 
 ##### PLOTTING FOR REPORTS #####
