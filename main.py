@@ -88,7 +88,7 @@ print(divergences)
 # plt.show()
 v_vel = np.zeros((nx,ny))
 # Compute Laplacian of velocity arrays
-laplacian = lap(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
+laplacian = lap(u_vel, v_vel, dx, dy)
 print(laplacian)
 
 
