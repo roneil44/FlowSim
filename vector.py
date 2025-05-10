@@ -385,8 +385,60 @@ def bc_lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     return lap_list
 
 
-def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
-    '''This function solves the nonlinear advection discretization used int he 2D
+def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wall:tuple, bottom_wall:tuple) -> list:
+    '''This function solves the nonlinear advection discretization used in the 2D
     incompressible Navier Stokes'''
+    
+    #Initializations
+    nx = len(u_vel)
+    ny = len(u_vel[0])
+    nq = (nx-1)*ny + nx*(ny-1)
+    adv_list = np.zeros(nq)
+
+    # Create lambda function to get index for given i ,j, assumes pinned pressure in 0,0
+    xu = lambda i,j: i+j*(nx-1) - 1
+    xv = lambda i,j: i+(j-1)*(nx) + (nx-1)*ny
+
+    #### Nx - Direction ######
+    
+    
+    # Central points for Nx
+    for i in range(2, nx-1):
+        for j in range(1, ny-1):
+            u_north = (u_vel[i, j+1] + u_vel[i,j]) / 2
+            u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
+            u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
+            u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
+            v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+            v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+
+            adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
+
+
+
+
+
+
+    ##### Ny - Direction #######
+    # Central points for Nx
+    for i in range(1, nx-1):
+        for j in range(2, ny-1):
+            v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+            v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+            v_west = (v_vel[i-1, j] + v_vel[i,j]) / 2
+            v_east = (v_vel[i+1, j] + v_vel[i,j]) / 2
+            u_west = (u_vel[i, j-1] + u_vel[i,j]) / 2
+            u_east = (u_vel[i+1, j-1] + u_vel[i+1,j]) / 2
+
+            adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+
+
+            
+            
+
+    
+
+
 
 
