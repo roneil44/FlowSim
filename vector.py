@@ -414,8 +414,105 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
 
             adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
+    # Bottom Row
+    j=0
+    for i in range(2, nx-1):
+        u_north = (u_vel[i, j+1] + u_vel[i,j]) / 2
+        u_south = bottom_wall[0]
+        u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
+        u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
+        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+        v_south = bottom_wall[1]
 
+        adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
+    # Top Row
+    j=ny-1
+    for i in range(2, nx-1):
+        u_north = top_wall[0]
+        u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
+        u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
+        u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
+        v_north = top_wall[1]
+        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+
+        adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
+
+    # Left column
+    i = 1
+    for j in range(1, ny-1):
+        u_north = (u_vel[i, j+1] + u_vel[i,j]) / 2
+        u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
+        u_west = (left_wall[0] + u_vel[i,j]) / 2
+        u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
+        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+
+        adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
+
+    # Right column
+    i = nx-1
+    for j in range(1, ny-1):
+        u_north = (u_vel[i, j+1] + u_vel[i,j]) / 2
+        u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
+        u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
+        u_east = (right_wall[0] + u_vel[i,j]) / 2
+        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+
+        adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
+
+    # Bottom Left
+    i = 1
+    j = 0
+
+    u_north = (u_vel[i, j+1] + u_vel[i,j]) / 2
+    u_south = bottom_wall[0]
+    u_west = (left_wall[0] + u_vel[i,j]) / 2
+    u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
+    v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+    v_south = bottom_wall[1]
+
+    adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
+
+    # Bottom Right
+    i = nx-1
+    j = 0
+    
+    u_north = (u_vel[i, j+1] + u_vel[i,j]) / 2
+    u_south = bottom_wall[0]
+    u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
+    u_east = (right_wall[0] + u_vel[i,j]) / 2
+    v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+    v_south = bottom_wall[1]
+
+    adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
+
+    # Top Right
+    i = nx-1
+    j = ny-1
+    
+    u_north = top_wall[0]
+    u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
+    u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
+    u_east = (right_wall[0] + u_vel[i,j]) / 2
+    v_north = top_wall[1]
+    v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+
+    adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
+
+    # Top Left
+    i = 1
+    j = ny-1
+    
+    u_north = top_wall[0]
+    u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
+    u_west = (left_wall[0] + u_vel[i,j]) / 2
+    u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
+    v_north = top_wall[1]
+    v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+
+    adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
 
 
@@ -432,8 +529,109 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
 
             adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
 
+    #Solve for bottom row,
+    j=1
+    for i in range(1, nx-1):
+        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+        v_south = (bottom_wall[1] + v_vel[i,j]) / 2
+        v_west = (v_vel[i-1, j] + v_vel[i,j]) / 2
+        v_east = (v_vel[i+1, j] + v_vel[i,j]) / 2
+        u_west = (u_vel[i, j-1] + u_vel[i,j]) / 2
+        u_east = (u_vel[i+1, j-1] + u_vel[i+1,j]) / 2
+
+        adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+    #Solve for Top row,
+    j=ny-1
+    for i in range(1, nx-1):
+        v_north = (top_wall[1] + v_vel[i,j]) / 2
+        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+        v_west = (v_vel[i-1, j] + v_vel[i,j]) / 2
+        v_east = (v_vel[i+1, j] + v_vel[i,j]) / 2
+        u_west = (u_vel[i, j-1] + u_vel[i,j]) / 2
+        u_east = (u_vel[i+1, j-1] + u_vel[i+1,j]) / 2
+
+        adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+    #Solve for Left column
+    i = 0
+    for j in range(2, ny-1):
+        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+        v_west = left_wall[1]
+        v_east = (v_vel[i+1, j] + v_vel[i,j]) / 2
+        u_west = left_wall[0]
+        u_east = (u_vel[i+1, j-1] + u_vel[i+1,j]) / 2
+
+        adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+     #Solve for Right column
+    i = nx-1
+    for j in range(2, ny-1):
+        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+        v_west = (v_vel[i-1, j] + v_vel[i,j]) / 2
+        v_east = right_wall[1]
+        u_west = (u_vel[i, j-1] + u_vel[i,j]) / 2
+        u_east = right_wall[0]
+
+        adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+    #Solve for Bottom Left Corner
+    i = 0
+    j = 1
+
+    v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+    v_south = (bottom_wall[1] + v_vel[i,j]) / 2
+    v_west = left_wall[1]
+    v_east = (v_vel[i+1, j] + v_vel[i,j]) / 2
+    u_west = left_wall[0]
+    u_east = (u_vel[i+1, j-1] + u_vel[i+1,j]) / 2
+
+    adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+    #Solve for Bottom Right Corner
+    i = nx-1
+    j = 1
+    
+    v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+    v_south = (bottom_wall[1] + v_vel[i,j]) / 2
+    v_west = (v_vel[i-1, j] + v_vel[i,j]) / 2
+    v_east = right_wall[1]
+    u_west = (u_vel[i, j-1] + u_vel[i,j]) / 2
+    u_east = right_wall[0]
+
+    adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
 
 
+    #Solve for Top Left Corner
+    i = 0
+    j = ny-1
+
+    v_north = (top_wall[1] + v_vel[i,j]) / 2
+    v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+    v_west = left_wall[1]
+    v_east = (v_vel[i+1, j] + v_vel[i,j]) / 2
+    u_west = left_wall[0]
+    u_east = (u_vel[i+1, j-1] + u_vel[i+1,j]) / 2
+
+    adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+
+    #Solve for Top Right Corner
+    i = nx-1
+    j = ny-1
+
+    v_north = (top_wall[1] + v_vel[i,j]) / 2
+    v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+    v_west = (v_vel[i-1, j] + v_vel[i,j]) / 2
+    v_east = right_wall[1]
+    u_west = (u_vel[i, j-1] + u_vel[i,j]) / 2
+    u_east = right_wall[0]
+
+    adv_list[xv(i,j)] = (v_north**2 - v_south**2)/dy + (v_east*u_east - v_west*u_west)/dx
+
+    return adv_list
             
             
 

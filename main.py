@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 x_max = 1
 y_max = 1
 number_x_points = 4
-number_y_points = 4
+number_y_points = 6
 
 ## Assign values to each global variable
 # Mesh conditions
@@ -72,7 +72,7 @@ for i in range(len(pressures)):
 #print(pressures)
 
 pressure_gradient = gradient(pressures, dx, dy)
-print(pressure_gradient)
+#print(pressure_gradient)
 
 plt.figure(1)
 plt.contourf(X_pressures, Y_pressures, pressures)
@@ -84,13 +84,16 @@ for i in range(len(u_vel)):
         u_vel[i,j] = 1
         v_vel[i,j] = 1
 divergences = div(u_vel, v_vel, dx, dy)
-print(divergences)
+#print(divergences)
 # plt.show()
-v_vel = np.zeros((nx,ny))
+#v_vel = np.zeros((nx,ny))
 # Compute Laplacian of velocity arrays
 laplacian = lap(u_vel, v_vel, dx, dy)
-print(laplacian)
+#print(laplacian)
 
+# Compute Non-linear advection
+advection = advect(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
+print(advection)
 
 ##### PLOTTING FOR REPORTS #####
 
