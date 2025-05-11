@@ -243,7 +243,7 @@ def calculate_L2_error(exact_solution, estimate_solution):
     # Assumes solutions have same length
     error = 0
     for i in range(len(exact_solution)):
-        error += abs(exact_solution[i] - estimate_solution[i])
+        error += (abs(exact_solution[i] - estimate_solution[i])) / abs(exact_solution[i])
     return error
 
 
@@ -287,5 +287,42 @@ plt.legend(['Initial Values', f'FE_Upwind error:{FE_up_error}',f'RK_4 error:{RK4
 
 # plt.figure(2)
 # plt.plot(grid, FE_central)
+
+
+
+##### Plot different solvers vs CFL number ######
+total_time = .2
+cfl_high = 0
+cfl_low = -3
+num_points = 10
+
+cfl_numbers = np.logspace(cfl_low, cfl_high, num_points)
+cfl_numbers = cfl_numbers[::-1]
+error = []
+
+exact_vals = []
+
+#Exact Solution
+for point in grid:
+    exact_vals.append(math.cos((point-(total_time/c))*2*math.pi))
+
+for cfl in cfl_numbers:
+    dt = cfl*dx/c
+    print(dt)
+    timesteps = total_time/dt
+    print(timesteps)
+    solution = (RK_4(RHS_func, starting_vals, dx, dt, timesteps, spatial_method='upwind'))
+    error.append(calculate_L2_error(exact_vals, solution))
+
+plt.figure()
+plt.loglog(cfl_numbers, error)
+plt.xlabel('CFL Number')
+plt.ylabel('L2 Error')
+
+
+plt.figure()
+plt.plot(grid, solution)
+plt.plot(grid, exact_vals)
+plt.legend(['Numeric', 'Exact'])
 
 plt.show()

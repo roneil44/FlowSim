@@ -49,23 +49,6 @@ def conjugant_solve(A:list[list], x0:list, b:list) -> list:
         d = r+beta*d
 
         i+=1
-        
-        # # Find beta with old and new g
-        # beta = -(np.dot(g_new, g_new)) / np.dot(r, r)
-        
-        # #Update g and x0 guess
-        # r = g_new
-        # x0 = x_new
-        
-        # # Rest of solver
-        # d = r - beta*d
-        # q = Ax(A, d)
-        # alpha = (np.dot(r, r)) / (np.dot(r, q))
-        # x_new = x0 + alpha*d
-        # g_new = r - alpha*q
-
-        # i += 1
-
     return(x0)
 
 

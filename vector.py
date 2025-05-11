@@ -59,7 +59,7 @@ def gradient(field:list[list], dx:float, dy:float) -> list[list]:
 def div(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     '''This function computes the 2D divergence of a given vector field
     using an midpoint spatial discretization scheme and returns a single
-    linearized vector of length nq = (nx-1)*ny + nx*(ny-1)'''
+    linearized vector of length np = nx*ny-1'''
 
     nx = len(u_vel)
     ny = len(u_vel[0])
