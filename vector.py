@@ -187,17 +187,17 @@ def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     # U[i,j-1] = -u_vel[i,j]+2*bottom_wall[0]
     j=0
     for i in range(2, nx-1):
-        lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]+u_vel[i+1,j])/dx**2 + (     -2*u_vel[i,j]+u_vel[i,j+1])/dy**2 # -u_vel[i,j]+2*bottom_wall[0]/dy**2
+        lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]+u_vel[i+1,j])/dx**2 + (-u_vel[i,j]     -2*u_vel[i,j]+u_vel[i,j+1])/dy**2 # +2*bottom_wall[0]/dy**2
     
     # Bottom Right corner
     j=0
     i=nx-1
-    lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]     )/dx**2 + (-2*u_vel[i,j]+u_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 =(-u_vel[i,j]+2*bottom_wall[0])/dy**2
+    lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]     )/dx**2 + (-u_vel[i,j]     -2*u_vel[i,j]+u_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
 
     # Solve for bottom left
     j=0
     i=1
-    lap_list[xu(i,j)] = (-2*u_vel[i,j]+u_vel[i+1,j]    )/dx**2 + (    -2*u_vel[i,j]+u_vel[i,j+1])/dy**2 #left_wall[0]/dx**2 + (-u_vel[i,j]+2*bottom_wall[0])/dy**2 
+    lap_list[xu(i,j)] = (-2*u_vel[i,j]+u_vel[i+1,j]    )/dx**2 + (-u_vel[i,j]    -2*u_vel[i,j]+u_vel[i,j+1])/dy**2 #left_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2 
 
     # Solve for left side inside wall
     i=1
@@ -213,17 +213,17 @@ def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     # U[i,j+1] = -u_vel[i,j]+2*top_wall[0]
     j=ny-1
     for i in range(2, nx-1):
-        lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]+u_vel[i+1,j])/dx**2 + (u_vel[i,j-1]-2*u_vel[i,j]     )/dy**2 #(-u_vel[i,j]+2*top_wall[0])/dy**2
+        lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]+u_vel[i+1,j])/dx**2 + (u_vel[i,j-1]-2*u_vel[i,j]-u_vel[i,j]     )/dy**2 #(+2*top_wall[0])/dy**2
 
     # Solve for top left
     i=1
     j=ny-1
-    lap_list[xu(i,j)] = (     -2*u_vel[i,j]+u_vel[i+1,j])/dx**2 + (u_vel[i,j-1]-2*u_vel[i,j]     )/dy**2 # left_wall[0]/dx**2 + (-u_vel[i,j]+2*top_wall[0])/dy**2
+    lap_list[xu(i,j)] = (     -2*u_vel[i,j]+u_vel[i+1,j])/dx**2 + (u_vel[i,j-1]-2*u_vel[i,j]-u_vel[i,j]     )/dy**2 # left_wall[0]/dx**2 + (+2*top_wall[0])/dy**2
 
     #Solve for top right
     i = nx-1
     j = ny-1
-    lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]     )/dx**2 + (u_vel[i,j-1]-2*u_vel[i,j]     )/dy**2 # right_wall[0]/dx**2 + (-u_vel[i,j]+2*top_wall[0])/dy**2
+    lap_list[xu(i,j)] = (u_vel[i-1,j]-2*u_vel[i,j]     )/dx**2 + (u_vel[i,j-1]-2*u_vel[i,j]-u_vel[i,j]     )/dy**2 # right_wall[0]/dx**2 + (+2*top_wall[0])/dy**2
 
     # Solve for center grid points
     for i in range(2, nx-1):
@@ -235,43 +235,43 @@ def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     #Solve for bottom row,
     j=1
     for i in range(1, nx-1):
-        lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (     -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 # -u_vel[i,j]+2*bottom_wall[0]/dy**2
+        lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 # +2*bottom_wall[0]/dy**2
     
     # Bottom Right corner
     j=1
     i=nx-1
-    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]     )/dx**2 + (-2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 =(-u_vel[i,j]+2*bottom_wall[0])/dy**2
+    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i-1,j]     )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
 
     # Solve for bottom left
     j=1
     i=0
-    lap_list[xv(i,j)] = (-2*v_vel[i,j]+v_vel[i+1,j]    )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #left_wall[0]/dx**2 + (-u_vel[i,j]+2*bottom_wall[0])/dy**2 
+    lap_list[xv(i,j)] = (-2*v_vel[i,j]+v_vel[i+1,j]-v_vel[i,j]    )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #left_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2 
 
     # Solve for left side inside wall
     i=0
     for j in range(2,ny-1):
-        lap_list[xv(i,j)] = (     -2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #left_wall[0]/dx**2
+        lap_list[xv(i,j)] = (-v_vel[i,j]     -2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #left_wall[0]/dx**2
     
     # Solve for right side inside wall
     i=nx-1
     for j in range(2,ny-1):
-        lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]     )/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2
+        lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i,j]     )/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2
 
     # Solve for top row
     j=ny-1
     for i in range(1, nx-1):
         #print(f'i:{i}, j:{j}')
-        lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]     )/dy**2 #(-u_vel[i,j]+2*top_wall[0])/dy**2
+        lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]     )/dy**2 #(+2*top_wall[0])/dy**2
 
     # Solve for top left
     i=0
     j=ny-1
-    lap_list[xv(i,j)] = (     -2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]     )/dy**2 # left_wall[0]/dx**2 + (-u_vel[i,j]+2*top_wall[0])/dy**2
+    lap_list[xv(i,j)] = (     -v_vel[i,j]-2*v_vel[i,j]+v_vel[i+1,j])/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]     )/dy**2 # left_wall[0]/dx**2 + (+2*top_wall[0])/dy**2
 
     #Solve for top right
     i = nx-1
     j = ny-1
-    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]     )/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]     )/dy**2 # right_wall[0]/dx**2 + (-u_vel[i,j]+2*top_wall[0])/dy**2
+    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i,j]     )/dx**2 + (v_vel[i,j-1]-2*v_vel[i,j]    )/dy**2 # right_wall[0]/dx**2 + (+2*top_wall[0])/dy**2
 
     # Solve for center grid points
     for i in range(1, nx-1):
@@ -301,17 +301,17 @@ def bc_lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     # U[i,j-1] = -u_vel[i,j]+2*bottom_wall[0]
     j=0
     for i in range(2, nx-1):
-        lap_list[xu(i,j)] = (-u_vel[i,j]+2*bottom_wall[0])/dy**2
+        lap_list[xu(i,j)] = (2*bottom_wall[0])/dy**2
     
     # Bottom Right corner
     j=0
     i=nx-1
-    lap_list[xu(i,j)] = right_wall[0]/dx**2 + (-u_vel[i,j]+2*bottom_wall[0])/dy**2
+    lap_list[xu(i,j)] = right_wall[0]/dx**2 + (2*bottom_wall[0])/dy**2
 
     # Solve for bottom left
     j=0
     i=1
-    lap_list[xu(i,j)] = left_wall[0]/dx**2 + (-u_vel[i,j]+2*bottom_wall[0])/dy**2 
+    lap_list[xu(i,j)] = left_wall[0]/dx**2 + (2*bottom_wall[0])/dy**2 
 
     # Solve for left side inside wall
     i=1
@@ -327,17 +327,17 @@ def bc_lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     # U[i,j+1] = -u_vel[i,j]+2*top_wall[0]
     j=ny-1
     for i in range(2, nx-1):
-        lap_list[xu(i,j)] = (-u_vel[i,j]+2*top_wall[0])/dy**2
+        lap_list[xu(i,j)] = (2*top_wall[0])/dy**2
 
     # Solve for top left
     i=1
     j=ny-1
-    lap_list[xu(i,j)] = left_wall[0]/dx**2 + (-u_vel[i,j]+2*top_wall[0])/dy**2
+    lap_list[xu(i,j)] = left_wall[0]/dx**2 + (2*top_wall[0])/dy**2
 
     #Solve for top right
     i = nx-1
     j = ny-1
-    lap_list[xu(i,j)] = right_wall[0]/dx**2 + (-u_vel[i,j]+2*top_wall[0])/dy**2
+    lap_list[xu(i,j)] = right_wall[0]/dx**2 + (2*top_wall[0])/dy**2
     
     #### VDirection ####
     #Solve for bottom row,
@@ -348,22 +348,22 @@ def bc_lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     # Bottom Right corner
     j=1
     i=nx-1
-    lap_list[xv(i,j)] = bottom_wall[1]/dy**2 + (-v_vel[i,j]+2*right_wall[1])/dx**2
+    lap_list[xv(i,j)] = (bottom_wall[1])/dy**2 + (2*right_wall[1])/dx**2
 
     # Solve for bottom left
     j=1
     i=0
-    lap_list[xv(i,j)] = bottom_wall[1]/dy**2 + (-v_vel[i,j]+2*left_wall[1])/dx**2 
+    lap_list[xv(i,j)] = bottom_wall[1]/dy**2 + (2*left_wall[1])/dx**2 
 
     # Solve for left side inside wall
     i=0
     for j in range(2,ny-1):
-        lap_list[xv(i,j)] = (-v_vel[i,j]+2*left_wall[1])/dx**2
+        lap_list[xv(i,j)] = (2*left_wall[1])/dx**2
     
     # Solve for right side inside wall
     i=nx-1
     for j in range(2,ny-1):
-        lap_list[xv(i,j)] = (-v_vel[i,j]+2*right_wall[1])/dx**2
+        lap_list[xv(i,j)] = (2*right_wall[1])/dx**2
 
     # Solve for top row
     j=ny-1
@@ -374,12 +374,12 @@ def bc_lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     # Solve for top left
     i=0
     j=ny-1
-    lap_list[xv(i,j)] = top_wall[1]/dy**2 + (-v_vel[i,j]+2*left_wall[1])/dx**2
+    lap_list[xv(i,j)] = top_wall[1]/dy**2 + (2*left_wall[1])/dx**2
 
     #Solve for top right
     i = nx-1
     j = ny-1
-    lap_list[xv(i,j)] = top_wall[1]/dy**2 + (-v_vel[i,j]+2*right_wall[1])/dx**2
+    lap_list[xv(i,j)] = top_wall[1]/dy**2 + (2*right_wall[1])/dx**2
     
     
     return lap_list

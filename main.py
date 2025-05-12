@@ -19,8 +19,8 @@ from utils import *
 #Initilize all global variables
 x_max = 1
 y_max = 1.2
-number_x_points = 200
-number_y_points = 200
+number_x_points = 25
+number_y_points = 25
 dx = x_max / number_x_points
 dy = y_max / number_y_points
 
@@ -160,15 +160,56 @@ div_error_avg = div_error_sum/(len(div_error) * len(div_error[0]))
 ### Laplacian Check ####
 
 # Initialize the two vector components of the laplacian
-laplace_u = np.zeros((len(x_array_u)-1, len(y_array)))
-laplce_v = np.zeros((len(x_array), len(y_array_v)-1))
+laplace_u = np.zeros((nx-1, ny))
+laplace_v = np.zeros((nx, ny-1))
+
+# print(np.shape(laplace_u))
+# print(np.shape(X_u))
+
+# print(np.shape(laplace_v))
+# print(np.shape(X_v))
+# print(Y_u[1,1])
 
 ## Solve exact for u
 for i in range(len(laplace_u)):
     for j in range(len(laplace_u[0])):
-        rh = math.sin(m*math.pi*X_u[i,j]/x_max)*math.sin(n*math.pi*Y_u[i,j]/y_max)
+        rh = math.sin(m*math.pi*(X_u[i,j])/x_max)*math.sin(n*math.pi*Y_u[i,j]/y_max)
         laplace_u[i,j] = -(m**2*math.pi**2/x_max**2)*rh - (n**2*math.pi**2/y_max**2)*rh
 ## Solve exact for v
+for i in range(len(laplace_v)):
+    for j in range(len(laplace_v[0])):
+        rh = math.sin(n*math.pi*X_v[i,j]/x_max)*math.sin(m*math.pi*Y_v[i,j]/y_max)
+        laplace_v[i,j] = -(n**2*math.pi**2/x_max**2)*rh - (m**2*math.pi**2/y_max**2)*rh
+
+## Get numeric solution
+num_lap = lap(u_vel, v_vel, dx, dy)
+
+# Repack it into 2d array for plotting
+num_lap_array_u = np.zeros((len(x_array_u)-1, len(y_array)))
+num_lap_array_v = np.zeros((len(x_array), len(y_array_v)-1))
+index = 0
+
+# Build 2D U array
+for j in range(len(num_lap_array_u[0])):
+    for i in range(len(num_lap_array_u)):
+        num_lap_array_u[i,j] = num_lap[index]
+        index += 1
+
+# Build 2D V array
+for j in range(len(num_lap_array_v[0])):
+    for i in range(len(num_lap_array_v)):
+        num_lap_array_v[i,j] = num_lap[index]
+        index += 1
+
+# Co-locate U and V arrays on pressure centers
+co_lap_u = collocate(laplace_u, X_u, Y_u, X_pressures, Y_pressures)
+co_lap_v = collocate(laplace_v, X_v, Y_u, X_pressures, Y_pressures)
+
+co_lap_u_num = collocate(num_lap_array_u, X_u, Y_u, X_pressures, Y_pressures)
+vo_lap_v_num = collocate(num_lap_array_v, X_v, Y_v, X_pressures, Y_pressures)
+
+print(num_lap_array_u)
+print(laplace_u)
 
 ##### Plotting Midterm #####
 
@@ -212,6 +253,44 @@ for i in range(len(laplace_u)):
 # plt.annotate(f'dx = {dx}\ndy = {dy}\ntotal error = {round(div_error_sum, 3)}\navg point error = {round(div_error_avg, 5)}', (.1*x_max, .1*y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
+
+# Laplacian U plots
+plt.figure()
+plt.contourf(X_u, Y_u, laplace_u)
+plt.title('Exact Laplacian U-Component')
+plt.colorbar(label='Laplace')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+plt.figure()
+plt.contourf(X_u, Y_u, num_lap_array_u)
+plt.title('Numeric Laplacian U-Component')
+plt.colorbar(label='Laplace')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+# Laplacian V plots
+plt.figure()
+plt.contourf(X_v, Y_v, laplace_v)
+plt.title('Exact Laplacian V-Component')
+plt.colorbar(label='Laplace')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+plt.figure()
+plt.contourf(X_v, Y_v, num_lap_array_v)
+plt.title('Numeric Laplacian V-Component')
+plt.colorbar(label='Laplace')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+print(np.shape(Y_pressures))
+plt.figure()
+plt.quiver(X_pressures, Y_pressures, co_lap_u, co_lap_v)
+plt.title('Laplacian Quiver')
+plt.colorbar(label='Laplace')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
 
 plt.show()
 

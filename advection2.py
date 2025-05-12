@@ -15,6 +15,7 @@
 
 # Imports
 import numpy as np
+from numpy import linalg
 from matplotlib import pyplot as plt
 import math
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, TextIO, Tuple
@@ -243,7 +244,7 @@ def calculate_L2_error(exact_solution, estimate_solution):
     # Assumes solutions have same length
     error = 0
     for i in range(len(exact_solution)):
-        error += (abs(exact_solution[i] - estimate_solution[i])) / abs(exact_solution[i])
+        error += (np.linalg.norm(exact_solution[i] - estimate_solution[i]))
     return error
 
 
@@ -311,7 +312,7 @@ for cfl in cfl_numbers:
     print(dt)
     timesteps = total_time/dt
     print(timesteps)
-    solution = (RK_4(RHS_func, starting_vals, dx, dt, timesteps, spatial_method='upwind'))
+    solution = (Heuns(RHS_func, starting_vals, dx, dt, timesteps, spatial_method='upwind'))
     error.append(calculate_L2_error(exact_vals, solution))
 
 plt.figure()
