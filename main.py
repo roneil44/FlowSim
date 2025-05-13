@@ -19,8 +19,8 @@ from utils import *
 #Initilize all global variables
 x_max = 1
 y_max = 1.2
-number_x_points = 25
-number_y_points = 25
+number_x_points = 200
+number_y_points = 200
 dx = x_max / number_x_points
 dy = y_max / number_y_points
 
@@ -126,7 +126,59 @@ for i in range(len(X_u)):
 for i in range(len(X_v)):
     for j in range(len(X_v[0])):
         v_vel[i,j+1] = math.sin(n*math.pi*X_v[i,j]/x_max)*math.sin(m*math.pi*Y_v[i,j]/y_max)
+        
+# Assign values to the Pressure array based on a similar sin function
+for i in range(len(X_pressures)):
+    for j in range(len(X_pressures[0])):
+        pressures[i,j] = math.sin(m*math.pi*X_pressures[i,j]/x_max)*math.sin(n*math.pi*Y_pressures[i,j]/y_max)
 
+
+### Gradient Check ####
+
+# Initialize the two vector components of the laplacian
+grad_u = np.zeros((nx-1, ny))
+grad_v = np.zeros((nx, ny-1))
+
+## Solve exact for u
+for i in range(len(grad_u)):
+    for j in range(len(grad_u[0])):
+        grad_u[i,j] = (m*math.pi/x_max)*math.cos(m*math.pi*X_pressures[i,j]/x_max)*math.sin(n*math.pi*Y_pressures[i,j]/y_max)
+        
+## Solve exact for v
+for i in range(len(grad_v)):
+    for j in range(len(grad_v[0])):
+        grad_v[i,j] = (n*math.pi/y_max)*math.sin(m*math.pi*X_pressures[i,j]/x_max)*math.cos(n*math.pi*Y_pressures[i,j]/y_max)
+
+## Get numeric solution
+num_grad = gradient(pressures, dx, dy)
+
+# Repack it into 2d array for plotting
+num_grad_array_u = np.zeros((len(x_array_u)-1, len(y_array)))
+num_grad_array_v = np.zeros((len(x_array), len(y_array_v)-1))
+index = 0
+
+# Build 2D U array
+for j in range(len(num_grad_array_u[0])):
+    for i in range(len(num_grad_array_u)):
+        if index != 0:
+            num_grad_array_u[i,j] = num_grad[index]
+        index += 1
+
+# Build 2D V array
+for j in range(len(num_grad_array_v[0])):
+    for i in range(len(num_grad_array_v)):
+        num_grad_array_v[i,j] = num_grad[index]
+        index += 1
+        
+## compute error
+
+grad_u_error = np.absolute(np.subtract(grad_u, num_grad_array_u))
+grad_v_error = np.absolute(np.subtract(grad_v, num_grad_array_v))
+
+grad_u_avg_error = np.sum(grad_u_error) / (len(grad_u_error) * len(grad_u_error[0]))
+grad_v_avg_error = np.sum(grad_v_error) / (len(grad_v_error) * len(grad_v_error[0]))
+
+         
 
 ### Divergence Check ####
 
@@ -206,12 +258,117 @@ co_lap_u = collocate(laplace_u, X_u, Y_u, X_pressures, Y_pressures)
 co_lap_v = collocate(laplace_v, X_v, Y_u, X_pressures, Y_pressures)
 
 co_lap_u_num = collocate(num_lap_array_u, X_u, Y_u, X_pressures, Y_pressures)
-vo_lap_v_num = collocate(num_lap_array_v, X_v, Y_v, X_pressures, Y_pressures)
+co_lap_v_num = collocate(num_lap_array_v, X_v, Y_v, X_pressures, Y_pressures)
 
-print(num_lap_array_u)
-print(laplace_u)
+# calculate error 
+# print(np.shape(co_lap_u))
+# print(np.shape(co_lap_u_num))
+# print(np.shape(X_u))
+lap_u_error = np.absolute(np.subtract(laplace_u, num_lap_array_u))
+lap_v_error = np.absolute(np.subtract(laplace_v, num_lap_array_v))
+
+lap_u_avg_error = np.sum(lap_u_error) / (len(lap_u_error) * len(lap_u_error[0]))
+lap_v_avg_error = np.sum(lap_v_error) / (len(lap_v_error) * len(lap_v_error[0]))
+
+
+
+#### Non Linear Advection Check ####
+# Initialize arrays
+adv_u = np.zeros((nx-1, ny))
+adv_v = np.zeros((nx, ny-1))
+
+
+# TODO
+# Write analytic advection solver
+
+## Get numeric solution
+num_adv = advect(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
+
+
+# Repack it into 2d array for plotting
+num_lap_array_u = np.zeros((len(x_array_u)-1, len(y_array)))
+num_lap_array_v = np.zeros((len(x_array), len(y_array_v)-1))
+index = 0
+
+# Repack it into 2d array for plotting
+num_adv_array_u = np.zeros((len(x_array_u)-1, len(y_array)))
+num_adv_array_v = np.zeros((len(x_array), len(y_array_v)-1))
+index = 0
+
+# Build 2D U array
+for j in range(len(num_adv_array_u[0])):
+    for i in range(len(num_adv_array_u)):
+        num_adv_array_u[i,j] = num_adv[index]
+        index += 1
+
+# Build 2D V array
+for j in range(len(num_adv_array_v[0])):
+    for i in range(len(num_adv_array_v)):
+        num_adv_array_v[i,j] = num_adv[index]
+        index += 1
+
+# TODO
+# Compute Advection Error
+
+###### ########
+
+
+
+
 
 ##### Plotting Midterm #####
+
+#### Gradient Plots ####
+
+# Exact Gradient
+plt.figure()
+plt.contourf(X_u, Y_u, grad_u)
+plt.title('Exact Gradient U-Component')
+plt.colorbar(label='Gradient')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+#Numeric Gradient
+plt.figure()
+plt.contourf(X_u, Y_u, num_grad_array_u)
+plt.title('Numeric Gradient U-Component')
+plt.colorbar(label='Gradient')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+#Exact V
+plt.figure()
+plt.contourf(X_v, Y_v, grad_v)
+plt.title('Exact Gradient V-Component')
+plt.colorbar(label='Gradient')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+#Numeric V
+plt.figure()
+plt.contourf(X_v, Y_v, num_grad_array_v)
+plt.title('Numeric Gradient V-Component')
+plt.colorbar(label='Gradient')
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+#Gradient U Error
+plt.figure()
+plt.contourf(X_u, Y_u, grad_u_error, norm=matplotlib.colors.LogNorm())
+plt.title('Gradient U-Component Error')
+plt.colorbar(label='Error')
+plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(grad_u_avg_error, 5)}', (.1*x_max, .1*y_max))
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
+
+#Gradient V Error
+plt.figure()
+plt.contourf(X_v, Y_v, grad_v_error, norm=matplotlib.colors.LogNorm())
+plt.title('Gradient V-Component Error')
+plt.colorbar(label='Error')
+plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(grad_v_avg_error, 5)}', (.1*x_max, .1*y_max))
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
 
 # ### U Plot
 # plt.figure()
@@ -255,42 +412,81 @@ print(laplace_u)
 # plt.ylim((0,y_max))
 
 # Laplacian U plots
-plt.figure()
-plt.contourf(X_u, Y_u, laplace_u)
-plt.title('Exact Laplacian U-Component')
-plt.colorbar(label='Laplace')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# plt.figure()
+# plt.contourf(X_u, Y_u, laplace_u)
+# plt.title('Exact Laplacian U-Component')
+# plt.colorbar(label='Laplace')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-plt.figure()
-plt.contourf(X_u, Y_u, num_lap_array_u)
-plt.title('Numeric Laplacian U-Component')
-plt.colorbar(label='Laplace')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# plt.figure()
+# plt.contourf(X_u, Y_u, num_lap_array_u)
+# plt.title('Numeric Laplacian U-Component')
+# plt.colorbar(label='Laplace')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-# Laplacian V plots
-plt.figure()
-plt.contourf(X_v, Y_v, laplace_v)
-plt.title('Exact Laplacian V-Component')
-plt.colorbar(label='Laplace')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# # Laplacian V plots
+# plt.figure()
+# plt.contourf(X_v, Y_v, laplace_v)
+# plt.title('Exact Laplacian V-Component')
+# plt.colorbar(label='Laplace')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-plt.figure()
-plt.contourf(X_v, Y_v, num_lap_array_v)
-plt.title('Numeric Laplacian V-Component')
-plt.colorbar(label='Laplace')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# plt.figure()
+# plt.contourf(X_v, Y_v, num_lap_array_v)
+# plt.title('Numeric Laplacian V-Component')
+# plt.colorbar(label='Laplace')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-print(np.shape(Y_pressures))
-plt.figure()
-plt.quiver(X_pressures, Y_pressures, co_lap_u, co_lap_v)
-plt.title('Laplacian Quiver')
-plt.colorbar(label='Laplace')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# #print(np.shape(Y_pressures))
+# plt.figure()
+# plt.quiver(X_pressures, Y_pressures, co_lap_u, co_lap_v)
+# plt.title('Laplacian Quiver Exact')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
+
+# plt.figure()
+# plt.quiver(X_pressures, Y_pressures, co_lap_u_num, co_lap_v_num)
+# plt.title('Laplacian Quiver Numeric')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
+
+# plt.figure()
+# plt.contourf(X_u, Y_u, lap_u_error, norm=matplotlib.colors.LogNorm())
+# plt.title('Laplacian U-Component Error')
+# plt.colorbar(label='Laplace')
+# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_u_avg_error, 5)}', (.1*x_max, .1*y_max))
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
+
+# plt.figure()
+# plt.contourf(X_v, Y_v, lap_v_error, norm=matplotlib.colors.LogNorm())
+# plt.title('Laplacian V-Component Error')
+# plt.colorbar(label='Laplace')
+# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_v_avg_error, 5)}', (.1*x_max, .1*y_max))
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
+
+#### Non-Linear Advection Plots ####
+# plt.figure()
+# plt.contourf(X_u, Y_u, num_adv_array_u)
+# plt.title('Numeric Advection U-Component')
+# plt.colorbar(label='Advection')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
+
+# plt.figure()
+# plt.contourf(X_v, Y_v, num_adv_array_v)
+# plt.title('Numeric Advection V-Component')
+# plt.colorbar(label='Advection')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
+
+
+
 
 plt.show()
 
