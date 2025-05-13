@@ -239,7 +239,7 @@ def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     # Bottom Right corner
     j=1
     i=nx-1
-    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i-1,j]     )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
+    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i,j]     )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
 
     # Solve for bottom left
     j=1
@@ -408,8 +408,8 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
             u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
             u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
             u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
-            v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
-            v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+            v_north = (v_vel[i-1, j+1] + v_vel[i,j+1]) / 2
+            v_south = (v_vel[i-1, j] + v_vel[i,j]) / 2
 
             adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
@@ -420,7 +420,7 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
         u_south = bottom_wall[0]
         u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
         u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
-        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+        v_north = (v_vel[i-1, j+1] + v_vel[i,j+1]) / 2
         v_south = bottom_wall[1]
 
         adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
@@ -433,7 +433,7 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
         u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
         u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
         v_north = top_wall[1]
-        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+        v_south = (v_vel[i-1, j] + v_vel[i,j]) / 2
 
         adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
@@ -444,8 +444,8 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
         u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
         u_west = (left_wall[0] + u_vel[i,j]) / 2
         u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
-        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
-        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+        v_north = (v_vel[i-1, j+1] + v_vel[i,j+1]) / 2
+        v_south = (v_vel[i-1, j] + v_vel[i,j]) / 2
 
         adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
@@ -456,8 +456,8 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
         u_south = (u_vel[i, j-1] + u_vel[i,j]) / 2
         u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
         u_east = (right_wall[0] + u_vel[i,j]) / 2
-        v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
-        v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+        v_north = (v_vel[i-1, j+1] + v_vel[i,j+1]) / 2
+        v_south = (v_vel[i-1, j] + v_vel[i,j]) / 2
 
         adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
@@ -469,7 +469,7 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     u_south = bottom_wall[0]
     u_west = (left_wall[0] + u_vel[i,j]) / 2
     u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
-    v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+    v_north = (v_vel[i-1, j+1] + v_vel[i,j+1]) / 2
     v_south = bottom_wall[1]
 
     adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
@@ -482,7 +482,7 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     u_south = bottom_wall[0]
     u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
     u_east = (right_wall[0] + u_vel[i,j]) / 2
-    v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
+    v_north = (v_vel[i-1, j+1] + v_vel[i,j+1]) / 2
     v_south = bottom_wall[1]
 
     adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
@@ -496,7 +496,7 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     u_west = (u_vel[i-1, j] + u_vel[i,j]) / 2
     u_east = (right_wall[0] + u_vel[i,j]) / 2
     v_north = top_wall[1]
-    v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+    v_south = (v_vel[i-1, j] + v_vel[i,j]) / 2
 
     adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 
@@ -509,7 +509,7 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
     u_west = (left_wall[0] + u_vel[i,j]) / 2
     u_east = (u_vel[i+1, j] + u_vel[i,j]) / 2
     v_north = top_wall[1]
-    v_south = (v_vel[i, j-1] + v_vel[i,j]) / 2
+    v_south = (v_vel[i-1, j] + v_vel[i,j]) / 2
 
     adv_list[xu(i,j)] = (u_east**2 - u_west**2)/dx + (u_north*v_north - u_south*v_south)/dy
 

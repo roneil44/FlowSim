@@ -19,8 +19,8 @@ from utils import *
 #Initilize all global variables
 x_max = 1
 y_max = 1.2
-number_x_points = 200
-number_y_points = 200
+number_x_points = 50
+number_y_points = 50
 dx = x_max / number_x_points
 dy = y_max / number_y_points
 
@@ -33,7 +33,7 @@ n_p = nx*ny-1
 
 
 ## Boundary Wall velocities ##
-top_wall = (1, 0) # u, v velocity
+top_wall = (0, 0) # u, v velocity
 left_wall = (0, 0)
 right_wall = (0, 0)
 bottom_Wall = (0 , 0)
@@ -74,41 +74,6 @@ X_w, Y_w = np.meshgrid(x_array_u[:-1], y_array_v[:-1], indexing='ij')
 #####
 # Midterm compare vector operations
 
-# First compute the gradient of a known function
-# Using the pressure array since it already exists
-# for i in range(len(pressures)):
-#     for j in range(len(pressures[0])):
-#         pressures[i, j] = (2*i)+j
-# #print(pressures)
-
-# pressure_gradient = gradient(pressures, dx, dy)
-# #print(pressure_gradient)
-
-# plt.figure()
-# plt.contourf(X_pressures, Y_pressures, pressures)
-# plt.colorbar()
-# # plt.show()
-
-
-# Next compute divergence of known function
-# for i in range(len(u_vel)):
-#     for j in range(len(u_vel[0])):
-#         u_vel[i,j] = j
-#         v_vel[i,j] = 0
-# divergences = div(u_vel, v_vel, dx, dy)
-# print(u_vel)
-# print(divergences)
-
-
-# #v_vel = np.zeros((nx,ny))
-
-# # Compute Laplacian of velocity arrays
-# laplacian = lap(u_vel, v_vel, dx, dy)
-# #print(laplacian)
-
-# # Compute Non-linear advection
-# advection = advect(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
-# print(advection)
 
 
 ######## Analytic analysis of Vector operations #########
@@ -270,25 +235,45 @@ lap_v_error = np.absolute(np.subtract(laplace_v, num_lap_array_v))
 lap_u_avg_error = np.sum(lap_u_error) / (len(lap_u_error) * len(lap_u_error[0]))
 lap_v_avg_error = np.sum(lap_v_error) / (len(lap_v_error) * len(lap_v_error[0]))
 
-
+#######
 
 #### Non Linear Advection Check ####
 # Initialize arrays
 adv_u = np.zeros((nx-1, ny))
 adv_v = np.zeros((nx, ny-1))
 
+# Change the u and v functions to make solving by hand easier also make sure U = 1 at top boundary since our 
+# solver explicitly includes Boundary conditions
 
-# TODO
-# Write analytic advection solver
+for i in range(len(X_u)):
+    for j in range(len(X_u[0])):
+        u_vel[i+1,j] = math.sin(m*math.pi*X_u[i,j]/(x_max))
+
+for i in range(len(X_v)):
+    for j in range(len(X_v[0])):
+        v_vel[i,j+1] = math.sin(n*math.pi*Y_v[i,j]/y_max)
+
+
+## Solve exact for Nx from Analytic Expression
+for i in range(len(adv_u)):
+    for j in range(len(adv_v)):
+
+        adv_u[i,j] = (  (2*m*math.pi/x_max)*math.sin(m*math.pi*X_u[i,j]/x_max) * 
+                    math.cos(m*math.pi*X_u[i,j]/x_max) + (n*math.pi/y_max)*math.sin(m*math.pi*X_u[i,j]/x_max)*
+                    math.cos(n*math.pi*Y_u[i,j]/y_max)      )
+
+## Solve exact for Ny
+for i in range(len(laplace_v)):
+    for j in range(len(laplace_v[0])):
+
+        adv_v[i,j] = (  (2*n*math.pi/y_max)*math.sin(n*math.pi*Y_v[i,j]/y_max) * 
+                    math.cos(n*math.pi*Y_v[i,j]/y_max) + (m*math.pi/x_max)*math.sin(n*math.pi*Y_v[i,j]/y_max)*
+                    math.cos(m*math.pi*X_v[i,j]/x_max)      )
+
 
 ## Get numeric solution
 num_adv = advect(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
 
-
-# Repack it into 2d array for plotting
-num_lap_array_u = np.zeros((len(x_array_u)-1, len(y_array)))
-num_lap_array_v = np.zeros((len(x_array), len(y_array_v)-1))
-index = 0
 
 # Repack it into 2d array for plotting
 num_adv_array_u = np.zeros((len(x_array_u)-1, len(y_array)))
@@ -307,8 +292,13 @@ for j in range(len(num_adv_array_v[0])):
         num_adv_array_v[i,j] = num_adv[index]
         index += 1
 
-# TODO
 # Compute Advection Error
+adv_u_error = np.absolute(np.subtract(adv_u, num_adv_array_u))
+adv_v_error = np.absolute(np.subtract(adv_v, num_adv_array_v))
+
+adv_u_avg_error = np.sum(adv_u_error) / (len(adv_u_error) * len(adv_u_error[0]))
+adv_v_avg_error = np.sum(adv_v_error) / (len(adv_v_error) * len(adv_v_error[0]))
+
 
 ###### ########
 
@@ -320,37 +310,37 @@ for j in range(len(num_adv_array_v[0])):
 
 #### Gradient Plots ####
 
-# Exact Gradient
-plt.figure()
-plt.contourf(X_u, Y_u, grad_u)
-plt.title('Exact Gradient U-Component')
-plt.colorbar(label='Gradient')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# #Exact Gradient
+# plt.figure()
+# plt.contourf(X_u, Y_u, grad_u)
+# plt.title('Exact Gradient U-Component')
+# plt.colorbar(label='Gradient')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-#Numeric Gradient
-plt.figure()
-plt.contourf(X_u, Y_u, num_grad_array_u)
-plt.title('Numeric Gradient U-Component')
-plt.colorbar(label='Gradient')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# #Numeric Gradient
+# plt.figure()
+# plt.contourf(X_u, Y_u, num_grad_array_u)
+# plt.title('Numeric Gradient U-Component')
+# plt.colorbar(label='Gradient')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-#Exact V
-plt.figure()
-plt.contourf(X_v, Y_v, grad_v)
-plt.title('Exact Gradient V-Component')
-plt.colorbar(label='Gradient')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# #Exact V
+# plt.figure()
+# plt.contourf(X_v, Y_v, grad_v)
+# plt.title('Exact Gradient V-Component')
+# plt.colorbar(label='Gradient')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-#Numeric V
-plt.figure()
-plt.contourf(X_v, Y_v, num_grad_array_v)
-plt.title('Numeric Gradient V-Component')
-plt.colorbar(label='Gradient')
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# #Numeric V
+# plt.figure()
+# plt.contourf(X_v, Y_v, num_grad_array_v)
+# plt.title('Numeric Gradient V-Component')
+# plt.colorbar(label='Gradient')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
 #Gradient U Error
 plt.figure()
@@ -370,7 +360,7 @@ plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(grad_v_avg_error, 
 plt.xlim((0,x_max))
 plt.ylim((0,y_max))
 
-# ### U Plot
+### Velocity Plots ######
 # plt.figure()
 # plt.contourf(X_u, Y_u, u_vel[1:])
 # plt.title('U-velocity')
@@ -386,6 +376,7 @@ plt.ylim((0,y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
 
+# #### Divergence Plots #####
 # # Divergence plot
 # plt.figure()
 # plt.contourf(X_pressures, Y_pressures, exact_divergence)
@@ -402,16 +393,18 @@ plt.ylim((0,y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
 
-# #Divergence Error
-# plt.figure()
-# plt.contourf(X_pressures, Y_pressures, div_error, norm=matplotlib.colors.LogNorm())
-# plt.title('Absolute Value of Divergence Error')
-# plt.colorbar(label='Error')
-# plt.annotate(f'dx = {dx}\ndy = {dy}\ntotal error = {round(div_error_sum, 3)}\navg point error = {round(div_error_avg, 5)}', (.1*x_max, .1*y_max))
-# plt.xlim((0,x_max))
-# plt.ylim((0,y_max))
+#Divergence Error
+plt.figure()
+plt.contourf(X_pressures, Y_pressures, div_error, norm=matplotlib.colors.LogNorm())
+plt.title('Divergence Error')
+plt.colorbar(label='Error')
+plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(div_error_avg, 5)}', (.1*x_max, .1*y_max))
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
 
-# Laplacian U plots
+# #### Laplacian Plots #####
+
+# #Laplacian U plots
 # plt.figure()
 # plt.contourf(X_u, Y_u, laplace_u)
 # plt.title('Exact Laplacian U-Component')
@@ -454,23 +447,25 @@ plt.ylim((0,y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
 
-# plt.figure()
-# plt.contourf(X_u, Y_u, lap_u_error, norm=matplotlib.colors.LogNorm())
-# plt.title('Laplacian U-Component Error')
-# plt.colorbar(label='Laplace')
-# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_u_avg_error, 5)}', (.1*x_max, .1*y_max))
-# plt.xlim((0,x_max))
-# plt.ylim((0,y_max))
+plt.figure()
+plt.contourf(X_u, Y_u, lap_u_error, norm=matplotlib.colors.LogNorm())
+plt.title('Laplacian U-Component Error')
+plt.colorbar(label='Error')
+plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_u_avg_error, 5)}', (.1*x_max, .1*y_max))
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
 
-# plt.figure()
-# plt.contourf(X_v, Y_v, lap_v_error, norm=matplotlib.colors.LogNorm())
-# plt.title('Laplacian V-Component Error')
-# plt.colorbar(label='Laplace')
-# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_v_avg_error, 5)}', (.1*x_max, .1*y_max))
-# plt.xlim((0,x_max))
-# plt.ylim((0,y_max))
+plt.figure()
+plt.contourf(X_v, Y_v, lap_v_error, norm=matplotlib.colors.LogNorm())
+plt.title('Laplacian V-Component Error')
+plt.colorbar(label='Error')
+plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_v_avg_error, 5)}', (.1*x_max, .1*y_max))
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
 
 #### Non-Linear Advection Plots ####
+
+# #Numeric U
 # plt.figure()
 # plt.contourf(X_u, Y_u, num_adv_array_u)
 # plt.title('Numeric Advection U-Component')
@@ -478,6 +473,15 @@ plt.ylim((0,y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
 
+# #Exact U
+# plt.figure()
+# plt.contourf(X_u, Y_u, adv_u)
+# plt.title('Exact Advection U-Component')
+# plt.colorbar(label='Advection')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
+
+# # Numeric V
 # plt.figure()
 # plt.contourf(X_v, Y_v, num_adv_array_v)
 # plt.title('Numeric Advection V-Component')
@@ -485,13 +489,31 @@ plt.ylim((0,y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
 
+# #Exact V
+# plt.figure()
+# plt.contourf(X_v, Y_v, adv_v)
+# plt.title('Exact Advection V-Component')
+# plt.colorbar(label='Advection')
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
+#U Error
+plt.figure()
+plt.contourf(X_u, Y_u, adv_u_error, norm=matplotlib.colors.LogNorm())
+plt.title('Advection U-Component Error')
+plt.colorbar(label='Error')
+plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(adv_u_avg_error, 5)}', (.1*x_max, .1*y_max))
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
 
-
-plt.show()
-
-
-##### PLOTTING FOR REPORTS #####
+#V Error
+plt.figure()
+plt.contourf(X_v, Y_v, adv_v_error, norm=matplotlib.colors.LogNorm())
+plt.title('Advection V-Component Error')
+plt.colorbar(label='Error')
+plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(adv_v_avg_error, 5)}', (.1*x_max, .1*y_max))
+plt.xlim((0,x_max))
+plt.ylim((0,y_max))
 
 ####Plotting staggered grid######
 # plt.figure()
@@ -507,3 +529,51 @@ plt.show()
 # plt.xlim(0,x_max)
 # plt.ylim(0, y_max)
 # plt.show()
+
+
+plt.show()
+
+
+##### PLOTTING FOR REPORTS #####
+
+
+
+
+########### BACKUP TO BE REMOVED #############
+
+
+# First compute the gradient of a known function
+# Using the pressure array since it already exists
+# for i in range(len(pressures)):
+#     for j in range(len(pressures[0])):
+#         pressures[i, j] = (2*i)+j
+# #print(pressures)
+
+# pressure_gradient = gradient(pressures, dx, dy)
+# #print(pressure_gradient)
+
+# plt.figure()
+# plt.contourf(X_pressures, Y_pressures, pressures)
+# plt.colorbar()
+# # plt.show()
+
+
+# Next compute divergence of known function
+# for i in range(len(u_vel)):
+#     for j in range(len(u_vel[0])):
+#         u_vel[i,j] = j
+#         v_vel[i,j] = 0
+# divergences = div(u_vel, v_vel, dx, dy)
+# print(u_vel)
+# print(divergences)
+
+
+# #v_vel = np.zeros((nx,ny))
+
+# # Compute Laplacian of velocity arrays
+# laplacian = lap(u_vel, v_vel, dx, dy)
+# #print(laplacian)
+
+# # Compute Non-linear advection
+# advection = advect(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_Wall)
+# print(advection)
