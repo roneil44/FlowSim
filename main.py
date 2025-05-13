@@ -12,6 +12,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 import math
 from utils import *
+from numpy import linalg
 
 
 #### First generate square mesh and add it to the global variables
@@ -19,8 +20,8 @@ from utils import *
 #Initilize all global variables
 x_max = 1
 y_max = 1.2
-number_x_points = 50
-number_y_points = 50
+number_x_points = 100
+number_y_points = 100
 dx = x_max / number_x_points
 dy = y_max / number_y_points
 
@@ -137,8 +138,13 @@ for j in range(len(num_grad_array_v[0])):
         
 ## compute error
 
-grad_u_error = np.absolute(np.subtract(grad_u, num_grad_array_u))
-grad_v_error = np.absolute(np.subtract(grad_v, num_grad_array_v))
+grad_u_error = np.subtract(grad_u, num_grad_array_u)
+grad_v_error = np.subtract(grad_v, num_grad_array_v)
+
+# Square for L2 error
+grad_u_error = grad_u_error*grad_u_error
+grad_v_error = grad_v_error *grad_v_error 
+
 
 grad_u_avg_error = np.sum(grad_u_error) / (len(grad_u_error) * len(grad_u_error[0]))
 grad_v_avg_error = np.sum(grad_v_error) / (len(grad_v_error) * len(grad_v_error[0]))
@@ -394,13 +400,13 @@ plt.ylim((0,y_max))
 # plt.ylim((0,y_max))
 
 #Divergence Error
-plt.figure()
-plt.contourf(X_pressures, Y_pressures, div_error, norm=matplotlib.colors.LogNorm())
-plt.title('Divergence Error')
-plt.colorbar(label='Error')
-plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(div_error_avg, 5)}', (.1*x_max, .1*y_max))
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# plt.figure()
+# plt.contourf(X_pressures, Y_pressures, div_error, norm=matplotlib.colors.LogNorm())
+# plt.title('Divergence Error')
+# plt.colorbar(label='Error')
+# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(div_error_avg, 5)}', (.1*x_max, .1*y_max))
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
 # #### Laplacian Plots #####
 
@@ -447,21 +453,21 @@ plt.ylim((0,y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
 
-plt.figure()
-plt.contourf(X_u, Y_u, lap_u_error, norm=matplotlib.colors.LogNorm())
-plt.title('Laplacian U-Component Error')
-plt.colorbar(label='Error')
-plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_u_avg_error, 5)}', (.1*x_max, .1*y_max))
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# plt.figure()
+# plt.contourf(X_u, Y_u, lap_u_error, norm=matplotlib.colors.LogNorm())
+# plt.title('Laplacian U-Component Error')
+# plt.colorbar(label='Error')
+# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_u_avg_error, 5)}', (.1*x_max, .1*y_max))
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-plt.figure()
-plt.contourf(X_v, Y_v, lap_v_error, norm=matplotlib.colors.LogNorm())
-plt.title('Laplacian V-Component Error')
-plt.colorbar(label='Error')
-plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_v_avg_error, 5)}', (.1*x_max, .1*y_max))
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# plt.figure()
+# plt.contourf(X_v, Y_v, lap_v_error, norm=matplotlib.colors.LogNorm())
+# plt.title('Laplacian V-Component Error')
+# plt.colorbar(label='Error')
+# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_v_avg_error, 5)}', (.1*x_max, .1*y_max))
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
 #### Non-Linear Advection Plots ####
 
@@ -497,23 +503,23 @@ plt.ylim((0,y_max))
 # plt.xlim((0,x_max))
 # plt.ylim((0,y_max))
 
-#U Error
-plt.figure()
-plt.contourf(X_u, Y_u, adv_u_error, norm=matplotlib.colors.LogNorm())
-plt.title('Advection U-Component Error')
-plt.colorbar(label='Error')
-plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(adv_u_avg_error, 5)}', (.1*x_max, .1*y_max))
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# #U Error
+# plt.figure()
+# plt.contourf(X_u, Y_u, adv_u_error, norm=matplotlib.colors.LogNorm())
+# plt.title('Advection U-Component Error')
+# plt.colorbar(label='Error')
+# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(adv_u_avg_error, 5)}', (.1*x_max, .1*y_max))
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
-#V Error
-plt.figure()
-plt.contourf(X_v, Y_v, adv_v_error, norm=matplotlib.colors.LogNorm())
-plt.title('Advection V-Component Error')
-plt.colorbar(label='Error')
-plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(adv_v_avg_error, 5)}', (.1*x_max, .1*y_max))
-plt.xlim((0,x_max))
-plt.ylim((0,y_max))
+# #V Error
+# plt.figure()
+# plt.contourf(X_v, Y_v, adv_v_error, norm=matplotlib.colors.LogNorm())
+# plt.title('Advection V-Component Error')
+# plt.colorbar(label='Error')
+# plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(adv_v_avg_error, 5)}', (.1*x_max, .1*y_max))
+# plt.xlim((0,x_max))
+# plt.ylim((0,y_max))
 
 ####Plotting staggered grid######
 # plt.figure()

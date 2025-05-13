@@ -25,9 +25,9 @@ c = 1
 RHS_func = lambda dfdx: -c*dfdx
 
 #Initializations
-num_points = 100
+num_points = 150
 lower = 0
-upper = 1
+upper = 1.5
 dx = (upper - lower) / num_points
 grid = np.linspace(lower, upper, num_points)
 starting_vals = []
@@ -35,25 +35,25 @@ exact_vals = []
 ######## Initial conditions and Exact solutions Comment / Uncomment desired function type #######
 
 #Top hat
-# for point in grid:
-#     if point >= .3 and point <= .7:
-#         starting_vals.append(1)
-#     else:
-#         starting_vals.append(0)
+for point in grid:
+    if point >= .3 and point <= .7:
+        starting_vals.append(1)
+    else:
+        starting_vals.append(0)
 
-# for point in grid:
-#     if point >= .8 and point <= 1.2:
-#         exact_vals.append(1)
-#     else:
-#         exact_vals.append(0)
+for point in grid:
+    if point >= .8 and point <= 1.2:
+        exact_vals.append(1)
+    else:
+        exact_vals.append(0)
 
 # cos wave
-for point in grid:
-    starting_vals.append(math.cos(point*2*math.pi))
+# for point in grid:
+#     starting_vals.append(math.cos(point*2*math.pi))
 
-#Exact Solution
-for point in grid:
-    exact_vals.append(math.cos((point-(c/2))*2*math.pi))
+# #Exact Solution
+# for point in grid:
+#     exact_vals.append(math.cos((point-(c/2))*2*math.pi))
 # ########
 
 def Forward_Euler(function, current_solution, dx, dt, total_time_steps, spatial_method):
@@ -248,43 +248,63 @@ def calculate_L2_error(exact_solution, estimate_solution):
     return error
 
 
+
+##### Error Behavior with different discretizations
+BE_up_1 = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=100, spatial_method='central')
+BE_up_error_1 = calculate_L2_error(exact_vals, BE_up_1)
+
+BE_up_2 = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=200, spatial_method='central')
+BE_up_error_2 = calculate_L2_error(exact_vals, BE_up_2)
+
+BE_up_3 = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=300, spatial_method='central')
+BE_up_error_3 = calculate_L2_error(exact_vals, BE_up_3)
+
+plt.figure()
+plt.plot(grid, starting_vals)
+plt.plot(grid, BE_up_1)
+plt.plot(grid, BE_up_2)
+plt.plot(grid, BE_up_3)
+plt.legend(['Starting Values',f'# Time Steps = {100}', f'# Time Steps = {200}', f'# Time Steps = {300}'])
+plt.title(f"Spatial Central Scheme dt={.001}")
+
+plt.show()
 ## Forward Euler Upwind
 
-FE_up = Forward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-FE_up_error = calculate_L2_error(exact_vals, FE_up)
+# FE_up = Forward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
+# FE_up_error = calculate_L2_error(exact_vals, FE_up)
 
-RK_4_up = RK_4(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-RK4_up_error = calculate_L2_error(exact_vals, RK_4_up)
+# RK_4_up = RK_4(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
+# RK4_up_error = calculate_L2_error(exact_vals, RK_4_up)
 
-Heuns_up = Heuns(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-Heuns_up_error = calculate_L2_error(exact_vals, Heuns_up)
+# Heuns_up = Heuns(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
+# Heuns_up_error = calculate_L2_error(exact_vals, Heuns_up)
 
-BE_up = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
-BE_up_error = calculate_L2_error(exact_vals, BE_up)
+# BE_up = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='upwind')
+# BE_up_error = calculate_L2_error(exact_vals, BE_up)
 
-BE_central = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='central')
-BE_central_error = calculate_L2_error(exact_vals, BE_central)
+# BE_central = Backward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=500, spatial_method='central')
+# BE_central_error = calculate_L2_error(exact_vals, BE_central)
 
 #FE_central = Forward_Euler(RHS_func, starting_vals, dx, dt=.001, total_time_steps=1000, spatial_method='central')
 
-error_test = calculate_L2_error(exact_vals, exact_vals)
-error_test2 = calculate_L2_error(exact_vals, starting_vals)
-error_test3 = calculate_L2_error(RK_4_up, Heuns_up)
-print(error_test)
-print(error_test2)
-print(f'Diff between Rk4 and Heuns {error_test3}')
+# error_test = calculate_L2_error(exact_vals, exact_vals)
+# error_test2 = calculate_L2_error(exact_vals, starting_vals)
+# error_test3 = calculate_L2_error(RK_4_up, Heuns_up)
+# print(error_test)
+# print(error_test2)
+# print(f'Diff between Rk4 and Heuns {error_test3}')
 
 
-plt.figure(1)
-plt.plot(grid, starting_vals)
-plt.plot(grid, FE_up)
-plt.plot(grid, RK_4_up)
-plt.plot(grid, Heuns_up,linestyle='dashed')
-plt.plot(grid, BE_up)
-plt.plot(grid, BE_central)
-plt.plot(grid, exact_vals, '-k')
-#
-plt.legend(['Initial Values', f'FE_Upwind error:{FE_up_error}',f'RK_4 error:{RK4_up_error}', f'Heuns error:{Heuns_up_error}', f'BE_Upwind error:{BE_up_error}', f'BE_Central error:{BE_central_error}', 'Exact Solution'])
+# plt.figure(1)
+# plt.plot(grid, starting_vals)
+# plt.plot(grid, FE_up)
+# plt.plot(grid, RK_4_up)
+# plt.plot(grid, Heuns_up,linestyle='dashed')
+# plt.plot(grid, BE_up)
+# plt.plot(grid, BE_central)
+# plt.plot(grid, exact_vals, '-k')
+# #
+# plt.legend(['Initial Values', f'FE_Upwind error:{FE_up_error}',f'RK_4 error:{RK4_up_error}', f'Heuns error:{Heuns_up_error}', f'BE_Upwind error:{BE_up_error}', f'BE_Central error:{BE_central_error}', 'Exact Solution'])
 
 # plt.figure(2)
 # plt.plot(grid, FE_central)
@@ -292,38 +312,38 @@ plt.legend(['Initial Values', f'FE_Upwind error:{FE_up_error}',f'RK_4 error:{RK4
 
 
 ##### Plot different solvers vs CFL number ######
-total_time = .2
-cfl_high = 0
-cfl_low = -3
-num_points = 10
+# total_time = .2
+# cfl_high = 0
+# cfl_low = -3
+# num_points = 10
 
-cfl_numbers = np.logspace(cfl_low, cfl_high, num_points)
-cfl_numbers = cfl_numbers[::-1]
-error = []
+# cfl_numbers = np.logspace(cfl_low, cfl_high, num_points)
+# cfl_numbers = cfl_numbers[::-1]
+# error = []
 
-exact_vals = []
+# exact_vals = []
 
-#Exact Solution
-for point in grid:
-    exact_vals.append(math.cos((point-(total_time/c))*2*math.pi))
+# #Exact Solution
+# for point in grid:
+#     exact_vals.append(math.cos((point-(total_time/c))*2*math.pi))
 
-for cfl in cfl_numbers:
-    dt = cfl*dx/c
-    print(dt)
-    timesteps = total_time/dt
-    print(timesteps)
-    solution = (Heuns(RHS_func, starting_vals, dx, dt, timesteps, spatial_method='upwind'))
-    error.append(calculate_L2_error(exact_vals, solution))
+# for cfl in cfl_numbers:
+#     dt = cfl*dx/c
+#     print(dt)
+#     timesteps = total_time/dt
+#     print(timesteps)
+#     solution = (Heuns(RHS_func, starting_vals, dx, dt, timesteps, spatial_method='upwind'))
+#     error.append(calculate_L2_error(exact_vals, solution))
 
-plt.figure()
-plt.loglog(cfl_numbers, error)
-plt.xlabel('CFL Number')
-plt.ylabel('L2 Error')
+# plt.figure()
+# plt.loglog(cfl_numbers, error)
+# plt.xlabel('CFL Number')
+# plt.ylabel('L2 Error')
 
 
-plt.figure()
-plt.plot(grid, solution)
-plt.plot(grid, exact_vals)
-plt.legend(['Numeric', 'Exact'])
+# plt.figure()
+# plt.plot(grid, solution)
+# plt.plot(grid, exact_vals)
+# plt.legend(['Numeric', 'Exact'])
 
-plt.show()
+# plt.show()

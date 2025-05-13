@@ -239,7 +239,7 @@ def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     # Bottom Right corner
     j=1
     i=nx-1
-    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i,j]     )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
+    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i-1,j]     )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
 
     # Solve for bottom left
     j=1
