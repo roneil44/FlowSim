@@ -68,10 +68,6 @@ X_v, Y_v = np.meshgrid(x_array, y_array_v[:-1], indexing='ij')
 X_w, Y_w = np.meshgrid(x_array_u[:-1], y_array_v[:-1], indexing='ij')
 
 
-
-
-
-
 #####
 # Midterm compare vector operations
 
