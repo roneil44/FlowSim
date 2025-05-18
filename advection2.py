@@ -188,7 +188,7 @@ def RK_4(function, current_solution, dx, dt, total_time_steps, spatial_method):
             k1.append(dt*(function(get_dfdx(dx, spatial_method, current_solution, i))))
             g1.append(current_solution[i]+.5*k1[i])
         for i in range(len(current_solution)):
-            # First step
+            # First ste
             k2.append(dt*(function(get_dfdx(dx, spatial_method, g1, i))))
             g2.append(current_solution[i]+.5*k2[i])
         for i in range(len(current_solution)):
