@@ -8,6 +8,7 @@
 # Imports
 import numpy as np
 import numpy.typing as npt
+from vector import *
 
 def conjugant_solve(A:list[list], x0:list, b:list) -> list:
     ''' This function takes an initial guess x0, and the right hand side values
@@ -62,3 +63,14 @@ def Ax(A:npt.ArrayLike, x:npt.ArrayLike) -> npt.NDArray:
 
     return b
 
+def Ru(u, dt, v):
+    '''This function computes R*u for the first step of the fractional step 
+    projection method'''
+    
+    R = u + dt*(v/2)*(lap(u))
+
+    pass
+
+def Dp(GP):
+    '''This function computes D*R^(-1)GP for the second half of the fractional
+    step projection method'''
