@@ -53,7 +53,7 @@ def conjugant_solve(A:list[list], x0:list, b:list) -> list:
         i+=1
     return(x0)
 
-def conjugant_solve1(x0, RHS, tol1, dt, v, nx, ny, dx, dy) -> list:
+def conjugant_solve1(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
     ''' This function takes an initial guess x0, and the right hand side values
     b and solves Ax = b iteratively using the conjugant gradient method'''
 
@@ -65,7 +65,7 @@ def conjugant_solve1(x0, RHS, tol1, dt, v, nx, ny, dx, dy) -> list:
     #Solver conditions
     max_iters = 1000
     i = 0
-    eps = tol1
+    eps = tol
 
     #First iteration
     r = RHS - np.array(Ru(x0, dt, v, nx, ny, dx, dy))
@@ -93,6 +93,57 @@ def conjugant_solve1(x0, RHS, tol1, dt, v, nx, ny, dx, dy) -> list:
         d = r+beta*d
 
         i+=1
+
+
+    if i == max_iters:
+        print('Max iters reached')
+
+    return(x0)
+
+def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
+    ''' This function takes an initial guess x0, and the right hand side values
+    b and solves Ax = b iteratively using the conjugant gradient method'''
+
+    # Convert to numpy arrays to make vector operations easier
+    x0 = np.array(x0)
+    RHS = np.array(RHS)
+    
+
+    #Solver conditions
+    max_iters = 1000
+    i = 0
+    eps = tol
+
+    #First iteration
+    r = RHS - np.array(Dp(x0, dt, v, nx, ny, dx, dy))
+    d = r
+    
+    delta_new = np.dot(r, r)
+    delta_0 = delta_new
+
+
+    while i<=max_iters and delta_new > eps*delta_0:
+        
+        q = np.array(Dp(d, dt, v, nx, ny, dx, dy))
+        alpha = delta_new / np.dot(d, q)
+        x0 = x0 + alpha*d
+
+        if i!= 0 and i % 50 == 0:
+            r = RHS - np.array(Dp(x0, dt, v, nx, ny, dx, dy))
+        else:
+            r = r - alpha*q
+
+        delta_old = delta_new
+        delta_new = np.dot(r, r)
+        beta = delta_new / delta_old
+
+        d = r+beta*d
+
+        i+=1
+
+    if i == max_iters:
+        print('Max iters reached')
+
     return(x0)
 
 
@@ -118,7 +169,31 @@ def Ru(q, dt, v, nx, ny, dx, dy):
 
     return Ru
 
-def Dp(GP):
+def Dp(p, dt, v, nx, ny, dx, dy):
     '''This function computes D*R^(-1)GP for the second half of the fractional
     step projection method'''
-    pass
+    p_array = unpack_p(p, nx, ny)
+
+    # First calulate pressure gradient
+    press_grad = gradient(p_array, dx, dy)
+    p_u, p_v = unpack_q(press_grad, nx, ny)
+
+    # Next calulate each term in R invers
+    first = (dt*v/2)*lap(p_u, p_v, dx, dy)
+    second = np.power(first, 2)
+
+    LHS = np.add(press_grad, first)
+    LHS = np.add(LHS, second)
+
+    # Finally take the divergence
+    LH_u, LH_v = unpack_q(LHS, nx, ny)
+
+    final = div(LH_u, LH_v, dx, dy)
+
+    return final
+
+
+
+
+    
+    

@@ -8,9 +8,7 @@
 from vector import *
 
 import numpy as np
-import matplotlib
 from matplotlib import pyplot as plt
-import math
 from utils import *
 from numpy import linalg
 from conjugant_solver import *
@@ -21,16 +19,16 @@ from conjugant_solver import *
 #Initialize all global variables
 x_max = 1
 y_max = 1.2
-number_x_points = 5
-number_y_points = 5
+number_x_points = 10
+number_y_points = 10
 dx = x_max / number_x_points
 dy = y_max / number_y_points
 
 v = 1
 
 # Solver Settings
-total_time = .1
-dt = .1
+total_time = .2
+dt = .01
 # Tolerances
 tol1 = 1e-3
 tol2 = 1e-3
@@ -96,6 +94,7 @@ t += dt
 while t <= total_time:
 
     q = pack_q(u_vel, v_vel, nx, ny)
+    p = pack_p(pressures, nx, ny)
 
     ##### First Fractional Step
     # First calulate the Right hand side of the first fractional step
@@ -114,25 +113,59 @@ while t <= total_time:
     u_F = conjugant_solve1(q, RHS, tol1, dt, v, nx, ny, dx, dy)
     
     ###### Second Fractional Step
-    u_F_u, u_F_v = unpack_q(u_F)
+    u_F_u, u_F_v = unpack_q(u_F, nx, ny)
 
     divergence = (1/dt)*div(u_F_u, u_F_v, dx, dy)
+    divergence_boundary = (1/dt)*bc_div(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
     
-
+    RHS2 = np.add(divergence, divergence_boundary)
     
+    p_plus = conjugant_solve2(p, RHS2, tol2, dt, v, nx, ny, dx, dy)
 
+    ###### Third Step solve
+    # Pressure term
+    pressures = unpack_p(p_plus, nx, ny)
+    press_grad = gradient(pressures, dx, dy)
+    u_grad, v_grad = unpack_q(press_grad, nx, ny)
+
+    # R inverse term
+    first = (dt*v/2)*lap(u_grad, v_grad, dx, dy)
+    second = np.power(first, 2)
+    R_inverse = np.add(press_grad, first)
+    R_inverse = np.add(R_inverse, second)
+
+    R_inverse = dt*R_inverse
+
+    u_new = np.subtract(u_F, R_inverse)
+    
+    # Repopulate arrays
+    u_vel, v_vel = unpack_q(u_new, nx, ny)
 
     # Increment timestep
     t += dt
 
 
 # # Temp for troubleshooting
-# u_vel, v_vel = unpack_q(u_F, nx, ny)
-
+#u_vel, v_vel = unpack_q(u_F, nx, ny)
+print(u_vel, v_vel)
 # Collocate velocities
 U, V = collocate_velocity(u_vel, v_vel, nx, ny, top_wall, bottom_wall, right_wall, left_wall)
 
 
 plt.figure()
 plt.quiver(X_corners, Y_corners, U, V)
+plt.xlim(0,x_max)
+plt.ylim(0,y_max)
+
+plt.figure()
+plt.contourf(X_corners, Y_corners, U)
+plt.colorbar()
+plt.title("U Contour")
+
+plt.figure()
+plt.contourf(X_corners, Y_corners, V)
+plt.colorbar()
+plt.title("V contour")
+
+
 plt.show()

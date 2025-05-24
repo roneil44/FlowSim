@@ -64,11 +64,11 @@ def div(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     ny = len(u_vel[0])
 
     #nq = (nx-1)*ny + nx*(ny-1)
-    n_p = nx*ny-1
+    n_p = nx*ny
     div_list = np.zeros(n_p)
 
     # Create lambda function to get index for given i ,j, assumes pinned pressure in 0,0
-    xp = lambda i,j: i+j*nx - 1
+    xp = lambda i,j: i+j*nx 
 
     # We need to separate out the boundary conditions
     # Start along bottom excluding bottom corners
@@ -113,20 +113,17 @@ def div(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
 
     return div_list
 
-def bc_div(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wall:tuple, bottom_wall:tuple) -> list:
+def bc_div(nx, ny, dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wall:tuple, bottom_wall:tuple) -> list:
     '''This function computes the 2D divergence along the boundary of a square with the prescribed
     boundary conditionss given in each _wall tuple of (u, v) retunrs a vector of length np 
     where all non solved for points are 0'''
 
-    nx = len(u_vel)
-    ny = len(u_vel[0])
-
     #nq = (nx-1)*ny + nx*(ny-1)
-    n_p = nx*ny-1
+    n_p = nx*ny
     div_list = np.zeros(n_p)
 
     # Create lambda function to get index for given i ,j, assumes pinned pressure in 0,0
-    xp = lambda i,j: i+j*nx - 1
+    xp = lambda i,j: i+j*nx
 
     # Start along bottom excluding bottom corners
     j = 0
