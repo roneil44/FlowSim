@@ -2,6 +2,7 @@
 
 from scipy.interpolate import NearestNDInterpolator
 import numpy as np
+from vector import *
 
 def collocate(field, current_x, current_y, new_x, new_y):
     '''This function linearly interpolates a field of values from one 
@@ -48,13 +49,13 @@ def pack_q(u_vels, v_vels, nx, ny):
     
     index = 0
     
-    for i in range(1, nx):
-        for j in range(ny):
+    for j in range(ny):
+        for i in range(1,nx):
             n_q[index] = u_vels[i,j]
             index+=1
             
-    for i in range(nx):
-        for j in range(1, ny):
+    for j in range(1,ny):
+        for i in range(nx):
             n_q[index] = v_vels[i,j]
             index+=1
             
@@ -71,14 +72,14 @@ def unpack_q(q_vels, nx, ny):
     index = 0
 
     # Build 2D U array
-    for j in range(len(U[0])):
-        for i in range(1, len(U)):
+    for j in range(ny):
+        for i in range(1,nx):
             U[i,j] = q_vels[index]
             index += 1
 
     # Build 2D V array
-    for j in range(1, len(V[0])):
-        for i in range(len(V)):
+    for j in range(1, ny):
+        for i in range(nx):
             V[i,j] = q_vels[index]
             index += 1
         
@@ -161,3 +162,14 @@ def collocate_pressure(pressure):
     
     
     pass
+
+
+def S_times(u_vels, v_vels, dt, v, nx, ny, dx, dy):
+    ''' Calculate S time'''
+    q = pack_q(u_vels, v_vels, nx, ny)
+
+    temp = (dt/2)*v*(lap(u_vels, v_vels, dx, dy))
+
+    final = np.add(q, temp)
+
+    return final

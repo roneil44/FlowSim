@@ -281,12 +281,11 @@ def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     return lap_list
 
 
-def bc_lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wall:tuple, bottom_wall:tuple) -> list:
+def bc_lap(nx, ny, dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wall:tuple, bottom_wall:tuple) -> list:
     '''This function takes the two 2D arrays for u and v velocity and calculates the Boundary conditions laplacian of the 
     2D velocity components. It returns these components as a single list of length nq'''
     #Initializations
-    nx = len(u_vel)
-    ny = len(u_vel[0])
+
     nq = (nx-1)*ny + nx*(ny-1)
     lap_list = np.zeros(nq)
 
