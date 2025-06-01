@@ -24,16 +24,16 @@ if __name__ == "__main__":
     #Initialize all global variables
     x_max = 1
     y_max = 1
-    number_x_points = 100
-    number_y_points = 100
+    number_x_points = 101
+    number_y_points = 101
     dx = x_max / number_x_points
     dy = y_max / number_y_points
 
-    v = 1/1000
+    v = 1/200
 
 
     # Solver Settings
-    total_time = 15
+    total_time = .01
     dt = .0025
     # Tolerances
     tol1 = 1e-3
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
 
     ## Boundary Wall velocities ##
-    top_wall = (1, 0) # u, v velocity
+    top_wall = (0, 0) # u, v velocity
     left_wall = (0, 0)
     right_wall = (0, 0)
     bottom_wall = (0 , 0)
@@ -62,6 +62,23 @@ if __name__ == "__main__":
     u_vel = np.zeros((nx,ny)) #Slightly larger than needed but makes iteration easier
     v_vel = np.zeros((nx,ny)) #Slightly larger than needed but makes iteration easier
     pressures = np.zeros((nx, ny)) #Slightly larger, one pressure should be pinned
+
+    # For immersed boundary method we need some boundary forces
+    force_u = np.zeros((nx, ny))
+    force_v = np.zeros((nx, ny))
+
+    # Apply a force for some interior points for testing
+    for i in range(nx):
+        for j in range(ny):
+            # print(f'i= {i} nx*.3 ={nx*.3} nx*.7 ={nx*.7}')
+            # print(f'j= {j} ny*.3 ={ny*.3}')
+            if i > nx*.3 and i < nx*.7 and j > ny*.3 and j<ny*.7:
+                #print('here')
+                force_u[i,j] = .1
+                force_v[i,j] = .1
+
+    f_q = pack_q(force_u, force_v, nx, ny)
+    #print(f_q)
 
      # Create Point arrays to map i, and j locations to q
     xu = np.zeros((nx, ny), dtype=int)
@@ -151,6 +168,9 @@ if __name__ == "__main__":
         # Full RHS
         RHS = np.add(s, full_advect)
         RHS = np.add(RHS, bc_laplace)
+
+        # Add immersed boundary forces
+        RHS = np.add(RHS, f_q)
         
         if t == 0:
             # First solve u_F doesn't exist
@@ -195,8 +215,8 @@ if __name__ == "__main__":
         # Increment timestep
         t += dt
         print(f' time elapsed:{t}')
-        if Error[-1] < 5:
-            break
+        # if Error[-1] < 5:
+        #     break
 
 
     # # Temp for troubleshooting

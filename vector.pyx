@@ -3,7 +3,6 @@
 ########
 from typing import List, Tuple
 import numpy as np
-import multiprocessing as mp
 
 
 def gradient(field:list[list], dx:float, dy:float) -> list[list]:
@@ -11,35 +10,6 @@ def gradient(field:list[list], dx:float, dy:float) -> list[list]:
     differencing to calculate the gradient in the x and y direction. The returned values are stacked
     such that the gradient of y is appended to the gradient in the x direction'''
     
-    ### Multiprocess gradient
-    # nx = len(field)
-    # ny = len(field[0])
-
-    # gradient_vector = np.zeros((nx-1)*ny+nx*(ny-1))
-
-    # queue = mp.Queue()
-    # queue.put(gradient_vector)
-
-    # u_comp = mp.Process(target=gradient_u, args = (queue, field, dx))
-    # u_comp.start()
-    # v_comp = mp.Process(target=gradient_v, args=(queue, field,dy))
-    # v_comp.start()
-    
-
-    # u_comp.join()
-    # v_comp.join()
-
-    # gradient_vector = queue.get()
-
-    # pool = Pool(processes=2)
-    # u_com = pool.map_async(gradient_u, (field, dx))
-    # v_com = pool.map_async(gradient_u, (field, dy))
-
-
-    #print(f'Gradient vector U component {gradient_vector}')
-
-
-
     #Determine length of gradient vector
     nx = len(field)
     ny = len(field[0])
@@ -53,7 +23,7 @@ def gradient(field:list[list], dx:float, dy:float) -> list[list]:
     ## First compute X component of gradient
     
     # First solve pinned point
-    #i = 1, j=0
+    #i = 0, j=0
     gradient_vector[0] = (field[0,0]      ) / dx
     
     # Solve rest of bottom row
@@ -62,14 +32,14 @@ def gradient(field:list[list], dx:float, dy:float) -> list[list]:
         gradient_vector[xu(i,j)] = (-field[i-1,j] + field[i,j]) / dx
 
     # Solve rest of grid above first row
-    for i in range(1, len(field)):
+    for i in range(len(field)):
         for j in range(1, len(field[0])):
             gradient_vector[xu(i,j)] = (-field[i-1,j] + field[i,j]) / dx
     
     ## Next compute Y component of gradient
     # First solve pinned point
     i = 0
-    j=1
+    j=0
     gradient_vector[xv(i,j)] = (field[0,0]      ) / dy
     
     # Solve rest of left column
@@ -81,50 +51,6 @@ def gradient(field:list[list], dx:float, dy:float) -> list[list]:
     for j in range(1,len(field[0])):
         for i in range(len(field)):
             gradient_vector[xv(i,j)] = (-field[i,j-1] + field[i,j]) / dy
-            
-    return gradient_vector
-
-
-def gradient2(field:list, xu, xv, xp, nx, ny, dx:float, dy:float) -> list[list]:
-    '''This function takes a numpy array and uses central spatial
-    differencing to calculate the gradient in the x and y direction. The returned values are stacked
-    such that the gradient of y is appended to the gradient in the x direction'''
-    
-    # Initialize gradient vec
-    gradient_vector = np.zeros((nx-1)*ny+nx*(ny-1))
-
-    ## First compute X component of gradient
-    
-    # First solve pinned point
-    i = 1
-    j = 0
-    gradient_vector[xu[i,j]] = (field[xp[0,0]]      ) / dx
-    
-    # Solve rest of bottom row
-    j = 0
-    for i in range(2, nx):
-        gradient_vector[xu[i,j]] = (-field[xp[i-1,j]] + field[xp[i,j]]) / dx
-
-    # Solve rest of grid above first row
-    for i in range(1,nx):
-        for j in range(1, ny):
-            gradient_vector[xu[i,j]] = (-field[xp[i-1,j]] + field[xp[i,j]]) / dx
-    
-    ## Next compute Y component of gradient
-    # First solve pinned point
-    i = 0
-    j = 1
-    gradient_vector[xv[i,j]] = (field[xp[i,j]]      ) / dy
-    
-    # Solve rest of left column
-    i = 0
-    for j in range(2, ny):
-        gradient_vector[xv[i,j]] = (-field[xp[i,j-1]] + field[xp[i,j]]) / dy
-
-    # Solve rest of grid right of left column
-    for i in range(1,nx):
-        for j in range(ny):
-            gradient_vector[xv[i,j]] = (-field[xp[i,j-1]] + field[xp[i,j]]) / dy
             
     return gradient_vector
 
@@ -321,7 +247,7 @@ def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     # Bottom Right corner
     j=1
     i=nx-1
-    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i,j]     )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
+    lap_list[xv(i,j)] = (v_vel[i-1,j]-2*v_vel[i,j]-v_vel[i-1,j]     )/dx**2 + (    -2*v_vel[i,j]+v_vel[i,j+1])/dy**2 #right_wall[0]/dx**2 + (+2*bottom_wall[0])/dy**2
 
     # Solve for bottom left
     j=1
@@ -719,65 +645,4 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
 
 
 
-###### Unused for Now
-def gradient_u(queue, field:list[list], dx:float) -> list[list]:
-    '''X component of gradient'''
-    
-    ## First compute X component of gradient
-    #Determine length of gradient vector
-    nx = len(field)
-    #ny = len(field[0])
-
-    gradient_vector = queue.get()
-    #gradient_vector = np.zeros((nx-1)*ny)
-    
-    # Create lambda function to get index for given i ,j, assumes pinned pressure in 0,0
-    xu = lambda i,j: i+j*(nx-1) - 1
-    # First solve pinned point
-    #i = 0, j=0
-    gradient_vector[0] = (field[0,0]      ) / dx
-    
-    # Solve rest of bottom row
-    j = 0
-    for i in range(1, len(field)):
-        gradient_vector[xu(i,j)] = (-field[i-1,j] + field[i,j]) / dx
-
-    # Solve rest of grid above first row
-    for i in range(len(field)):
-        for j in range(1, len(field[0])):
-            gradient_vector[xu(i,j)] = (-field[i-1,j] + field[i,j]) / dx
-
-    queue.put(gradient_vector)
-
-
-def gradient_v(queue, field:list[list], dy:float) -> list[list]:
-    '''Gradient v-component'''
-     ## Next compute Y component of gradient
-    # First solve pinned point
-
-     #Determine length of gradient vector
-    nx = len(field)
-    ny = len(field[0])
-
-    gradient_vector = queue.get()
-    #gradient_vector = np.zeros(nx*(ny-1))
-    
-    # Create lambda function to get index for given i ,j, assumes pinned pressure in 0,0
-    xv = lambda i,j: i+(j-1)*(nx) + (nx-1)*ny
-
-    i = 0
-    j=0
-    gradient_vector[xv(i,j)] = (field[0,0]      ) / dy
-    
-    # Solve rest of left column
-    i = 0
-    for j in range(1, len(field[0])):
-        gradient_vector[xv(i,j)] = (-field[i,j-1] + field[i,j]) / dy
-
-    # Solve rest of grid right of left column
-    for j in range(1,len(field[0])):
-        for i in range(len(field)):
-            gradient_vector[xv(i,j)] = (-field[i,j-1] + field[i,j]) / dy
-            
-    queue.put(gradient_vector)
 

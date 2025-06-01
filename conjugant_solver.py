@@ -10,6 +10,7 @@ import numpy as np
 import numpy.typing as npt
 from vector import *
 from utils import *
+import multiprocessing
 
 def conjugant_solve(A:list[list], x0:list, b:list) -> list:
     ''' This function takes an initial guess x0, and the right hand side values
@@ -127,12 +128,12 @@ def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
         alpha = delta_new / np.dot(d, q)
         x0 = x0 + alpha*d
 
-        if i!= 0 and i % 50 == 0:
-            r = RHS - np.array(Dp(x0, dt, v, nx, ny, dx, dy))
-        else:
-            r = r - alpha*q
+        # if i!= 0 and i % 50 == 0:
+        #     r = RHS - np.array(Dp(x0, dt, v, nx, ny, dx, dy))
+        # else:
+        #     r = r - alpha*q
 
-        # r = r - alpha*q
+        r = r - alpha*q
 
         delta_old = delta_new
         delta_new = np.dot(r, r)
@@ -141,8 +142,8 @@ def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
         d = r+beta*d
 
         i+=1
-        if i%25 == 0:
-            print(f'Current iteration {i}')
+        # if i%25 == 0:
+        #     print(f'Current iteration {i}')
 
     print(f'Iterations in Pressure {i}')
 
@@ -175,14 +176,14 @@ def Dp(p, dt, v, nx, ny, dx, dy):
     '''This function computes D*R^(-1)GP for the second half of the fractional
     step projection method'''
     p_array = unpack_p(p, nx, ny)
-
+    
     # First calulate pressure gradient
     press_grad = gradient(p_array, dx, dy)
     p_u, p_v = unpack_q(press_grad, nx, ny)
 
     # Next calulate each term in R invers
     first = (dt*v/2)*lap(p_u, p_v, dx, dy)
-    second = np.multiply(first, first)
+    #second = np.multiply(first, first)
 
     LHS = np.add(press_grad, first)
     #LHS = np.add(LHS, second)
