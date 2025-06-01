@@ -29,14 +29,15 @@ def collocate(field, current_x, current_y, new_x, new_y):
     return(new_field)
 
 def pack_p(pressures, nx, ny):
-    '''Take pressure array and pack it into a single list of size nx*ny'''
-    p = np.zeros(nx*ny)
+    '''Take pressure array and pack it into a single list of size nx*ny-1'''
+    p = np.zeros(nx*ny-1)
     index = 0
     
     for j in range(ny):
         for i in range(nx):
-            p[index] = pressures[i,j]
-            index += 1
+            if i != 0 or j!=0:
+                p[index] = pressures[i,j]
+                index += 1
     
     return p    
     
@@ -92,8 +93,11 @@ def unpack_p(p, nx, ny):
     
     for j in range(ny):
         for i in range(nx):
-            pressures[i,j] = p[index]
-            index += 1
+            if i != 0 or j != 0:
+                pressures[i,j] = p[index]
+                index += 1
+            else:
+                pressures[i,j] = 0
             
     return pressures
     

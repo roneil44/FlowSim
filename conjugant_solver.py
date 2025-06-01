@@ -95,8 +95,7 @@ def conjugant_solve1(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
         i+=1
 
 
-    if i == max_iters:
-        print('Max iters reached')
+    print(f'Iterations in Momentum {i}')
 
     return(x0)
 
@@ -110,7 +109,7 @@ def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
     
 
     #Solver conditions
-    max_iters = 1000
+    max_iters = 1e3
     i = 0
     eps = tol
 
@@ -122,7 +121,7 @@ def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
     delta_0 = delta_new
 
 
-    while i<=max_iters and delta_new > eps*delta_0:
+    while i<max_iters and delta_new > eps*delta_0:
         
         q = np.array(Dp(d, dt, v, nx, ny, dx, dy))
         alpha = delta_new / np.dot(d, q)
@@ -133,6 +132,8 @@ def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
         else:
             r = r - alpha*q
 
+        # r = r - alpha*q
+
         delta_old = delta_new
         delta_new = np.dot(r, r)
         beta = delta_new / delta_old
@@ -140,9 +141,10 @@ def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
         d = r+beta*d
 
         i+=1
+        if i%25 == 0:
+            print(f'Current iteration {i}')
 
-    if i == max_iters:
-        print('Max iters reached')
+    print(f'Iterations in Pressure {i}')
 
     return(x0)
 
@@ -180,10 +182,10 @@ def Dp(p, dt, v, nx, ny, dx, dy):
 
     # Next calulate each term in R invers
     first = (dt*v/2)*lap(p_u, p_v, dx, dy)
-    second = np.power(first, 2)
+    second = np.multiply(first, first)
 
     LHS = np.add(press_grad, first)
-    LHS = np.add(LHS, second)
+    #LHS = np.add(LHS, second)
 
     # Finally take the divergence
     LH_u, LH_v = unpack_q(LHS, nx, ny)

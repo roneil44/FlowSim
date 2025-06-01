@@ -12,26 +12,31 @@ from matplotlib import pyplot as plt
 from utils import *
 from numpy import linalg
 from conjugant_solver import *
+import datetime
+import pytz
+import json
 
 
 #### First generate square mesh and add it to the global variables
 # Setup basic mesh parameters and declare them as global variables
 #Initialize all global variables
 x_max = 1
-y_max = 1.2
-number_x_points = 10
-number_y_points = 10
+y_max = 1
+number_x_points = 100
+number_y_points = 100
 dx = x_max / number_x_points
 dy = y_max / number_y_points
 
-v = 1
+v = 1/1000
+
+
 
 # Solver Settings
-total_time = .2
-dt = .01
+total_time = 40
+dt = .0025
 # Tolerances
 tol1 = 1e-3
-tol2 = 1e-3
+tol2 = 1e-4
 
 
 ## Assign values to each global variable
@@ -48,11 +53,21 @@ left_wall = (0, 0)
 right_wall = (0, 0)
 bottom_wall = (0 , 0)
 
+# CFL Number Calulation
+CFL = (top_wall[0]*dt/dx)
+
 #Array initializations
 # Create as 2D arrays that get stacked into a single vector q
 u_vel = np.zeros((nx,ny)) #Slightly larger than needed but makes iteration easier
 v_vel = np.zeros((nx,ny)) #Slightly larger than needed but makes iteration easier
 pressures = np.zeros((nx, ny)) #Slightly larger, one pressure should be pinned
+
+# # Add some u velocity
+# for i in range(len(u_vel[0])):
+#     for j in range(len(u_vel)):
+#         if i > (.2*nx) and i < (.8*nx):
+#             if j > (.2*ny) and j<(.8*ny):
+#                 u_vel[i,j] = 1
 
 # Initialize X and Y grid locations for velocities and presssures, doesn't include Boundary conditions
 x_array = np.linspace((dx/2), (x_max-dx/2), number_x_points)
@@ -83,15 +98,17 @@ X_corners, Y_corners = np.meshgrid(x_corners, y_corners, indexing='ij')
 
 ######### Lid Driven Cavity Flow Solver #########
 t = 0
-
-# First pass initilizations
+Error = []
+# First pass initilizations and Static Boundary conditions
 A_old = advect(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
 
-t += dt
+bc_laplace = dt*v*bc_lap(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
+divergence_boundary = (1/dt)*bc_div(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
+
 # Setup while loop to iterate over time
 
 
-while t <= total_time:
+while t < total_time:
 
     q = pack_q(u_vel, v_vel, nx, ny)
     p = pack_p(pressures, nx, ny)
@@ -103,64 +120,129 @@ while t <= total_time:
     #laplace = lap(u_vel, v_vel, dx, dy)
     
     # Partial RHS terms
-    bc_laplace = dt*v*bc_lap(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
     full_advect = (dt/2)*(np.add(np.multiply(3,A_new), A_old))
+
+    # Update non-linear advection term
+    A_old = A_new
 
     # Full RHS
     RHS = np.add(s, full_advect)
     RHS = np.add(RHS, bc_laplace)
-
-    u_F = conjugant_solve1(q, RHS, tol1, dt, v, nx, ny, dx, dy)
+    
+    if t == 0:
+        # First solve u_F doesn't exist
+        u_F = conjugant_solve1(q, RHS, tol1, dt, v, nx, ny, dx, dy)
+    else:
+        u_F = conjugant_solve1(u_F, RHS, tol1, dt, v, nx, ny, dx, dy)
     
     ###### Second Fractional Step
     u_F_u, u_F_v = unpack_q(u_F, nx, ny)
 
     divergence = (1/dt)*div(u_F_u, u_F_v, dx, dy)
-    divergence_boundary = (1/dt)*bc_div(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
     
     RHS2 = np.add(divergence, divergence_boundary)
     
-    p_plus = conjugant_solve2(p, RHS2, tol2, dt, v, nx, ny, dx, dy)
+    p = conjugant_solve2(p, RHS2, tol2, dt, v, nx, ny, dx, dy)
 
     ###### Third Step solve
     # Pressure term
-    pressures = unpack_p(p_plus, nx, ny)
+    pressures = unpack_p(p, nx, ny)
     press_grad = gradient(pressures, dx, dy)
     u_grad, v_grad = unpack_q(press_grad, nx, ny)
 
     # R inverse term
     first = (dt*v/2)*lap(u_grad, v_grad, dx, dy)
-    second = np.power(first, 2)
+    #second = np.power(first, 2)
     R_inverse = np.add(press_grad, first)
-    R_inverse = np.add(R_inverse, second)
+    #R_inverse = np.add(R_inverse, second)
 
     R_inverse = dt*R_inverse
 
     u_new = np.subtract(u_F, R_inverse)
     
+    # Calculate Error
+    top = abs(np.subtract(u_new, q))
+    per_point = np.divide(top, u_new)
+    Error.append(sum(abs(per_point)))
+
     # Repopulate arrays
     u_vel, v_vel = unpack_q(u_new, nx, ny)
 
+
     # Increment timestep
     t += dt
+    print(f' time elapsed:{t}')
 
 
 # # Temp for troubleshooting
 #u_vel, v_vel = unpack_q(u_F, nx, ny)
-print(u_vel, v_vel)
+#print(u_vel, v_vel)
+
 # Collocate velocities
 U, V = collocate_velocity(u_vel, v_vel, nx, ny, top_wall, bottom_wall, right_wall, left_wall)
 
+print(f'CFL Number: {CFL}')
+
+#### Write all solved values to file
+stored_vals = {
+                'Reynolds':1/v,
+                'CFL':CFL,
+                'total time':total_time,
+                'dt': dt,
+                'nx':nx,
+                'ny':ny,
+                'dx':dx,
+                'dy':dy,
+                'x_max':x_max,
+                'y_max':y_max,
+                "u_vel":u_vel.tolist(),
+                'v_vel':v_vel.tolist(),
+                'U':U.tolist(),
+                'V':V.tolist(),
+                'pressures':pressures.tolist(),
+                'Error':Error 
+                }
+
+json_object = json.dumps(stored_vals, indent=4)
+current_time = datetime.datetime.now(pytz.timezone('US/Pacific'))
+time_name = f'{current_time.year}-{current_time.month}-{current_time.day}-{current_time.hour}-{current_time.minute}-{current_time.second}'
+
+with open(rf'C:\Users\Riley\Desktop\Code\FlowSim\Results\{time_name}_Re{1/v}_dx{dx}_dt{dt}_t{total_time}.json','w') as file:
+    file.write(json_object)
+    # file.write(f'nx = {nx} ny = {ny} dx = {dx} dy = {dy}\n')
+    # file.write(f'U Velocities:\n')
+    # file.write(f'{U}\n')
+    # file.write(f'V Velocities:\n')
+    # file.write(f'{V}\n')
+    # file.write(f'Pressures:\n')
+    # file.write(f'{pressures}\n')
+    
+    
+    
+
+plt.figure
+plt.plot(Error)
+plt.title('Velocity Convergence')
 
 plt.figure()
 plt.quiver(X_corners, Y_corners, U, V)
 plt.xlim(0,x_max)
 plt.ylim(0,y_max)
 
+# plt.figure()
+# plt.contourf(X_u, Y_u, u_vel)
+# plt.colorbar()
+# plt.title("U Contour solved")
+
 plt.figure()
 plt.contourf(X_corners, Y_corners, U)
 plt.colorbar()
 plt.title("U Contour")
+
+# plt.figure()
+# plt.contourf(X_v, Y_v, v_vel[1::])
+# plt.colorbar()
+# plt.title("V Contour solved")
 
 plt.figure()
 plt.contourf(X_corners, Y_corners, V)

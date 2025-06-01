@@ -10,8 +10,8 @@ from utils import *
 ########
 # # Test pack / unpack_q
 
-nx = 3
-ny = 3
+nx = 2
+ny = 2
 
 x_points = np.linspace(0,1,nx+1)
 y_points = np.linspace(0,1,ny+1)
@@ -27,38 +27,38 @@ right_wall = (0,0)
 
 #### Test q packing
 
-for j in range(ny):
-    for i in range(nx):
-        v_vels[i,j] = i+2*j
+# for j in range(ny):
+#     for i in range(nx):
+#         v_vels[i,j] = i+2*j
 
-print(v_vels)
+# print(v_vels)
 
-q_vels = pack_q(u_vels, v_vels, nx, ny)
+# q_vels = pack_q(u_vels, v_vels, nx, ny)
 
-print(q_vels)
+# print(q_vels)
 
-U, V = unpack_q(q_vels, nx, ny)
+# U, V = unpack_q(q_vels, nx, ny)
 
-print(V)
+# print(V)
 #print(V)
 ######
 
 #### Test p packing
-# pressures = np.zeros((nx,ny))
+pressures = np.zeros((nx,ny))
 
-# for j in range(ny):
-#     for i in range(nx):
-#         pressures[i,j] = i+2*j
+for j in range(ny):
+    for i in range(nx):
+        pressures[i,j] = i+2*j
         
-# print(pressures)
+print(pressures)
 
-# packed = pack_p(pressures, nx, ny)
+packed = pack_p(pressures, nx, ny)
 
-# print(packed)
+print(packed)
 
-# unpack = unpack_p(packed, nx, ny)
+unpack = unpack_p(packed, nx, ny)
 
-# print(unpack)
+print(unpack)
 
 ######
 

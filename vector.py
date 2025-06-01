@@ -64,11 +64,11 @@ def div(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     ny = len(u_vel[0])
 
     #nq = (nx-1)*ny + nx*(ny-1)
-    n_p = nx*ny
+    n_p = nx*ny-1
     div_list = np.zeros(n_p)
 
     # Create lambda function to get index for given i ,j, assumes pinned pressure in 0,0
-    xp = lambda i,j: i+j*nx 
+    xp = lambda i,j: i+j*nx -1
 
     # We need to separate out the boundary conditions
     # Start along bottom excluding bottom corners
@@ -85,6 +85,12 @@ def div(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     i = 0
     for j in range(1, ny-1):
         div_list[xp(i,j)] = (u_vel[i+1,j]      ) / dx + (v_vel[i, j+1] - v_vel[i, j])/dy # -left_wall[0]/dx
+
+    #Bottom Left Corner Pinned pressure
+    # i=0
+    # j=0
+    # div_list[xp(i,j)] = (u_vel[i+1,j]     ) / dx + (v_vel[i, j+1]        )/dy # -left_wall[0]/dx + -bottom_wall[1]/dy
+    # print(f'vector solve: {div_list[xp(i,j)]}')
 
     #Right Wall
     i = nx-1
@@ -119,11 +125,11 @@ def bc_div(nx, ny, dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wa
     where all non solved for points are 0'''
 
     #nq = (nx-1)*ny + nx*(ny-1)
-    n_p = nx*ny
+    n_p = nx*ny -1 
     div_list = np.zeros(n_p)
 
     # Create lambda function to get index for given i ,j, assumes pinned pressure in 0,0
-    xp = lambda i,j: i+j*nx
+    xp = lambda i,j: i+j*nx -1 
 
     # Start along bottom excluding bottom corners
     j = 0
@@ -133,7 +139,12 @@ def bc_div(nx, ny, dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wa
     #Bottom right corner
     i=nx-1
     j=0
-    div_list[xp(i,j)] = right_wall[0]/dx + -bottom_wall[1]/dy
+    div_list[xp(i,j)] = right_wall[0]/dx -bottom_wall[1]/dy
+
+    #Bottom Left Corner
+    i=0
+    j=0
+    div_list[xp(i,j)] = -left_wall[0]/dx -bottom_wall[1]/dy
   
     #Left wall
     i = 0
