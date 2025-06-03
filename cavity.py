@@ -29,10 +29,10 @@ if __name__ == "__main__":
     dx = x_max / number_x_points
     dy = y_max / number_y_points
 
-    v = 1/400
+    v = 1/1000
 
     # Solver Settings
-    total_time = 10
+    total_time = 20
     dt = .0025
     # Tolerances
     tol1 = 1e-3
