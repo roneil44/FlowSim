@@ -29,7 +29,7 @@ if __name__ == "__main__":
     dx = x_max / number_x_points
     dy = y_max / number_y_points
 
-    v = 1/200
+    v = 1/400
 
 
     # Solver Settings

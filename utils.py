@@ -3,6 +3,7 @@
 from scipy.interpolate import NearestNDInterpolator
 import numpy as np
 from vector import *
+from numba import jit
 
 def collocate(field, current_x, current_y, new_x, new_y):
     '''This function linearly interpolates a field of values from one 
@@ -28,6 +29,7 @@ def collocate(field, current_x, current_y, new_x, new_y):
 
     return(new_field)
 
+@jit
 def pack_p(pressures, nx, ny):
     '''Take pressure array and pack it into a single list of size nx*ny-1'''
     p = np.zeros(nx*ny-1)
@@ -42,7 +44,7 @@ def pack_p(pressures, nx, ny):
     return p    
     
 
-
+@jit
 def pack_q(u_vels, v_vels, nx, ny):
     ''''Take and U and V velocity field and packs it into a single list of size (nx-1)*ny+nx*(ny-1)'''
     
@@ -62,6 +64,7 @@ def pack_q(u_vels, v_vels, nx, ny):
             
     return(n_q)
 
+@jit
 def unpack_q(q_vels, nx, ny):
     ''' Takes the q velocity arrays and unpacks it into 2D vectors U and V
     Includes the boundary values defined in the initial definition of u_vel and v_vel'''
@@ -86,6 +89,7 @@ def unpack_q(q_vels, nx, ny):
         
     return U, V
 
+@jit
 def unpack_p(p, nx, ny):
     '''Repack p back into a 2D array'''
     pressures = np.zeros((nx, ny))

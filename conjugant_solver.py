@@ -10,7 +10,8 @@ import numpy as np
 import numpy.typing as npt
 from vector import *
 from utils import *
-import multiprocessing
+import numba
+
 
 def conjugant_solve(A:list[list], x0:list, b:list) -> list:
     ''' This function takes an initial guess x0, and the right hand side values
@@ -54,6 +55,7 @@ def conjugant_solve(A:list[list], x0:list, b:list) -> list:
         i+=1
     return(x0)
 
+
 def conjugant_solve1(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
     ''' This function takes an initial guess x0, and the right hand side values
     b and solves Ax = b iteratively using the conjugant gradient method'''
@@ -96,9 +98,10 @@ def conjugant_solve1(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
         i+=1
 
 
-    print(f'Iterations in Momentum {i}')
+    # print(f'Iterations in Momentum {i}')
 
     return(x0)
+
 
 def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
     ''' This function takes an initial guess x0, and the right hand side values
@@ -145,7 +148,7 @@ def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
         # if i%25 == 0:
         #     print(f'Current iteration {i}')
 
-    print(f'Iterations in Pressure {i}')
+    # print(f'Iterations in Pressure {i}')
 
     return(x0)
 
@@ -160,7 +163,7 @@ def Ax(A:npt.ArrayLike, x:npt.ArrayLike) -> npt.NDArray:
 
     return b
 
-
+@jit
 def Ru(q, dt, v, nx, ny, dx, dy):
     '''This function computes R*u for the first step of the fractional step 
     projection method'''
@@ -172,6 +175,7 @@ def Ru(q, dt, v, nx, ny, dx, dy):
 
     return Ru
 
+@jit
 def Dp(p, dt, v, nx, ny, dx, dy):
     '''This function computes D*R^(-1)GP for the second half of the fractional
     step projection method'''

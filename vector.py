@@ -3,43 +3,15 @@
 ########
 from typing import List, Tuple
 import numpy as np
-import multiprocessing as mp
+from numba import jit
+from numba import prange
 
-
+@jit
 def gradient(field:list[list], dx:float, dy:float) -> list[list]:
     '''This function takes a numpy array and uses central spatial
     differencing to calculate the gradient in the x and y direction. The returned values are stacked
     such that the gradient of y is appended to the gradient in the x direction'''
     
-    ### Multiprocess gradient
-    # nx = len(field)
-    # ny = len(field[0])
-
-    # gradient_vector = np.zeros((nx-1)*ny+nx*(ny-1))
-
-    # queue = mp.Queue()
-    # queue.put(gradient_vector)
-
-    # u_comp = mp.Process(target=gradient_u, args = (queue, field, dx))
-    # u_comp.start()
-    # v_comp = mp.Process(target=gradient_v, args=(queue, field,dy))
-    # v_comp.start()
-    
-
-    # u_comp.join()
-    # v_comp.join()
-
-    # gradient_vector = queue.get()
-
-    # pool = Pool(processes=2)
-    # u_com = pool.map_async(gradient_u, (field, dx))
-    # v_com = pool.map_async(gradient_u, (field, dy))
-
-
-    #print(f'Gradient vector U component {gradient_vector}')
-
-
-
     #Determine length of gradient vector
     nx = len(field)
     ny = len(field[0])
@@ -85,50 +57,8 @@ def gradient(field:list[list], dx:float, dy:float) -> list[list]:
     return gradient_vector
 
 
-def gradient2(field:list, xu, xv, xp, nx, ny, dx:float, dy:float) -> list[list]:
-    '''This function takes a numpy array and uses central spatial
-    differencing to calculate the gradient in the x and y direction. The returned values are stacked
-    such that the gradient of y is appended to the gradient in the x direction'''
-    
-    # Initialize gradient vec
-    gradient_vector = np.zeros((nx-1)*ny+nx*(ny-1))
 
-    ## First compute X component of gradient
-    
-    # First solve pinned point
-    i = 1
-    j = 0
-    gradient_vector[xu[i,j]] = (field[xp[0,0]]      ) / dx
-    
-    # Solve rest of bottom row
-    j = 0
-    for i in range(2, nx):
-        gradient_vector[xu[i,j]] = (-field[xp[i-1,j]] + field[xp[i,j]]) / dx
-
-    # Solve rest of grid above first row
-    for i in range(1,nx):
-        for j in range(1, ny):
-            gradient_vector[xu[i,j]] = (-field[xp[i-1,j]] + field[xp[i,j]]) / dx
-    
-    ## Next compute Y component of gradient
-    # First solve pinned point
-    i = 0
-    j = 1
-    gradient_vector[xv[i,j]] = (field[xp[i,j]]      ) / dy
-    
-    # Solve rest of left column
-    i = 0
-    for j in range(2, ny):
-        gradient_vector[xv[i,j]] = (-field[xp[i,j-1]] + field[xp[i,j]]) / dy
-
-    # Solve rest of grid right of left column
-    for i in range(1,nx):
-        for j in range(ny):
-            gradient_vector[xv[i,j]] = (-field[xp[i,j-1]] + field[xp[i,j]]) / dy
-            
-    return gradient_vector
-
-
+@jit()
 def div(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     '''This function computes the 2D divergence of a given vector field
     using an midpoint spatial discretization scheme and returns a single
@@ -193,6 +123,7 @@ def div(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
 
     return div_list
 
+
 def bc_div(nx, ny, dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wall:tuple, bottom_wall:tuple) -> list:
     '''This function computes the 2D divergence along the boundary of a square with the prescribed
     boundary conditionss given in each _wall tuple of (u, v) retunrs a vector of length np 
@@ -247,7 +178,7 @@ def bc_div(nx, ny, dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wa
 
     return div_list
 
-
+@jit
 def lap(u_vel:list[list], v_vel:list[list], dx:float, dy:float) -> list:
     '''This function takes the two 2D arrays for u and v velocity and calculates the laplacian of the 
     2D velocity components. It returns these components as a single list of length '''
@@ -464,7 +395,7 @@ def bc_lap(nx, ny, dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wa
     
     return lap_list
 
-
+@jit
 def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tuple, left_wall:tuple, right_wall:tuple, bottom_wall:tuple) -> list:
     '''This function solves the nonlinear advection discretization used in the 2D
     incompressible Navier Stokes'''
@@ -597,7 +528,7 @@ def advect(u_vel:list[list], v_vel:list[list], dx:float, dy:float, top_wall:tupl
 
 
     ##### Ny - Direction #######
-    # Central points for Nx
+    # Central points for Ny
     for i in range(1, nx-1):
         for j in range(2, ny-1):
             v_north = (v_vel[i, j+1] + v_vel[i,j]) / 2
@@ -781,3 +712,46 @@ def gradient_v(queue, field:list[list], dy:float) -> list[list]:
             
     queue.put(gradient_vector)
 
+# @jit(parallel=True)
+# def gradient2(field:list, xu, xv, xp, nx, ny, dx:float, dy:float) -> list[list]:
+#     '''This function takes a numpy array and uses central spatial
+#     differencing to calculate the gradient in the x and y direction. The returned values are stacked
+#     such that the gradient of y is appended to the gradient in the x direction'''
+    
+#     # Initialize gradient vec
+#     gradient_vector = np.zeros((nx-1)*ny+nx*(ny-1))
+
+#     ## First compute X component of gradient
+    
+#     # First solve pinned point
+#     i = 1
+#     j = 0
+#     gradient_vector[xu[i,j]] = (field[xp[0,0]]      ) / dx
+    
+#     # Solve rest of bottom row
+#     j = 0
+#     for i in prange(2, nx):
+#         gradient_vector[xu[i,j]] = (-field[xp[i-1,j]] + field[xp[i,j]]) / dx
+
+#     # Solve rest of grid above first row
+#     for i in prange(1,nx):
+#         for j in prange(1, ny):
+#             gradient_vector[xu[i,j]] = (-field[xp[i-1,j]] + field[xp[i,j]]) / dx
+    
+#     ## Next compute Y component of gradient
+#     # First solve pinned point
+#     i = 0
+#     j = 1
+#     gradient_vector[xv[i,j]] = (field[xp[i,j]]      ) / dy
+    
+#     # Solve rest of left column
+#     i = 0
+#     for j in prange(2, ny):
+#         gradient_vector[xv[i,j]] = (-field[xp[i,j-1]] + field[xp[i,j]]) / dy
+
+#     # Solve rest of grid right of left column
+#     for i in prange(1,nx):
+#         for j in prange(ny):
+#             gradient_vector[xv[i,j]] = (-field[xp[i,j-1]] + field[xp[i,j]]) / dy
+            
+#     return gradient_vector

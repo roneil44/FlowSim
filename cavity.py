@@ -24,16 +24,15 @@ if __name__ == "__main__":
     #Initialize all global variables
     x_max = 1
     y_max = 1
-    number_x_points = 100
-    number_y_points = 100
+    number_x_points = 129
+    number_y_points = 129
     dx = x_max / number_x_points
     dy = y_max / number_y_points
 
-    v = 1/1000
-
+    v = 1/400
 
     # Solver Settings
-    total_time = 15
+    total_time = 10
     dt = .0025
     # Tolerances
     tol1 = 1e-3
@@ -129,7 +128,8 @@ if __name__ == "__main__":
     divergence_boundary = (1/dt)*bc_div(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
 
     # Setup while loop to iterate over time
-    
+    #Counter on when to display time
+    count = 0
 
     while t < total_time:
 
@@ -185,8 +185,9 @@ if __name__ == "__main__":
         
         # Calculate Error
         top = abs(np.subtract(u_new, q))
-        per_point = np.divide(top, u_new)
-        Error.append(sum(abs(per_point)))
+        # per_point = np.divide(top, u_new)
+        # Cahnge to really take residual since we are going to steady state solution
+        Error.append(sum(abs(top)))
 
         # Repopulate arrays
         u_vel, v_vel = unpack_q(u_new, nx, ny)
@@ -194,9 +195,11 @@ if __name__ == "__main__":
 
         # Increment timestep
         t += dt
-        print(f' time elapsed:{t}')
-        if Error[-1] < 5:
-            break
+        count += 1
+        if count == 25:
+            print(t)
+            count = 0
+    
 
 
     # # Temp for troubleshooting
