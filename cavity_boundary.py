@@ -10,6 +10,7 @@ from vector import *
 import numpy as np
 from matplotlib import pyplot as plt
 from utils import *
+from immersed_boundary import *
 from numpy import linalg
 from conjugant_solver import *
 import datetime
@@ -24,16 +25,17 @@ if __name__ == "__main__":
     #Initialize all global variables
     x_max = 1
     y_max = 1
-    number_x_points = 129
-    number_y_points = 129
+    number_x_points = 80
+    number_y_points = 80
     dx = x_max / number_x_points
     dy = y_max / number_y_points
+    ds = (dx+dy)/2
 
-    v = 1/1000
+    v = 1/400
 
 
     # Solver Settings
-    total_time = 20
+    total_time = .005
     dt = .0025
     # Tolerances
     tol1 = 1e-3
@@ -63,21 +65,6 @@ if __name__ == "__main__":
     v_vel = np.zeros((nx,ny)) #Slightly larger than needed but makes iteration easier
     pressures = np.zeros((nx, ny)) #Slightly larger, one pressure should be pinned
 
-    # For immersed boundary method we need some boundary forces
-    force_u = np.zeros((nx, ny))
-    force_v = np.zeros((nx, ny))
-
-    # Apply a force for some interior points for testing
-    for i in range(nx):
-        for j in range(ny):
-            # print(f'i= {i} nx*.3 ={nx*.3} nx*.7 ={nx*.7}')
-            # print(f'j= {j} ny*.3 ={ny*.3}')
-            if i > nx*.3 and i < nx*.7 and j > ny*.3 and j<ny*.7:
-                #print('here')
-                force_u[i,j] = .1
-                force_v[i,j] = .1
-
-    f_q = pack_q(force_u, force_v, nx, ny)
     #print(f_q)
 
      # Create Point arrays to map i, and j locations to q
@@ -136,6 +123,38 @@ if __name__ == "__main__":
     y_corners = np.linspace(0, y_max, ny+1)
     X_corners, Y_corners = np.meshgrid(x_corners, y_corners, indexing='ij')
 
+    
+    ###### Immersed Boundary initializations
+
+    # Add forces at points relevant to a circle
+    x_circ, y_circ = get_points_on_circle(.25, nx, ny, dx, dy, ds)
+
+
+    # For immersed boundary method we need some boundary forces
+    force_u = np.zeros((nx, ny))
+    force_v = np.zeros((nx, ny))
+
+    f_q = pack_q(force_u, force_v, nx, ny)
+
+    # Apply a force for some interior points for testing
+    ### Force as Rectangle
+    # for i in range(nx):
+    #     for j in range(ny):
+    #         # print(f'i= {i} nx*.3 ={nx*.3} nx*.7 ={nx*.7}')
+    #         # print(f'j= {j} ny*.3 ={ny*.3}')
+    #         if i > nx*.3 and i < nx*.7 and j > ny*.3 and j<ny*.7:
+    #             #print('here')
+    #             force_u[i,j] = .1
+    #             force_v[i,j] = .1
+
+    ### Force on Circle
+    f_circ_u = calc_q(X_u.flatten(), Y_u.flatten(), x_circ, y_circ, ds)
+    f_circ_v = calc_q(X_v.flatten(), Y_v.flatten(), x_circ, y_circ, ds)
+    
+    for item in f_circ_u:
+        f_q[item[0]] = .1
+    
+    
     ######### Lid Driven Cavity Flow Solver #########
     t = 0
     Error = []
@@ -144,9 +163,10 @@ if __name__ == "__main__":
 
     bc_laplace = dt*v*bc_lap(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
     divergence_boundary = (1/dt)*bc_div(nx, ny, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
-
-    # Setup while loop to iterate over time
     
+    
+    # Setup while loop to iterate over time
+    count = 0
 
     while t < total_time:
 
@@ -160,16 +180,16 @@ if __name__ == "__main__":
         #laplace = lap(u_vel, v_vel, dx, dy)
         
         # Partial RHS terms
-        full_advect = (dt/2)*(np.add(np.multiply(3,A_new), A_old))
+        full_advect = (dt/2)*(np.subtract(np.multiply(3,A_new), A_old))
 
         # Update non-linear advection term
         A_old = A_new
 
         # Full RHS
-        RHS = np.add(s, full_advect)
+        RHS = np.subtract(s, full_advect)
         RHS = np.add(RHS, bc_laplace)
 
-        # Add immersed boundary forces
+        #Add immersed Boundary
         RHS = np.add(RHS, f_q)
         
         if t == 0:
@@ -205,8 +225,9 @@ if __name__ == "__main__":
         
         # Calculate Error
         top = abs(np.subtract(u_new, q))
-        per_point = np.divide(top, u_new)
-        Error.append(sum(abs(per_point)))
+        # per_point = np.divide(top, u_new)
+        # Cahnge to really take residual since we are going to steady state solution
+        Error.append(sum(abs(top)))
 
         # Repopulate arrays
         u_vel, v_vel = unpack_q(u_new, nx, ny)
@@ -214,9 +235,11 @@ if __name__ == "__main__":
 
         # Increment timestep
         t += dt
-        print(f' time elapsed:{t}')
-        # if Error[-1] < 5:
-        #     break
+        count += 1
+        if count == 25:
+            print(t)
+            count = 0
+    
 
 
     # # Temp for troubleshooting

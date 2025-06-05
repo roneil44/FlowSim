@@ -171,7 +171,7 @@ def collocate_pressure(pressure):
     
     pass
 
-
+@jit
 def S_times(u_vels, v_vels, dt, v, nx, ny, dx, dy):
     ''' Calculate S time'''
     q = pack_q(u_vels, v_vels, nx, ny)

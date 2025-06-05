@@ -102,7 +102,6 @@ def conjugant_solve1(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
 
     return(x0)
 
-
 def conjugant_solve2(x0, RHS, tol, dt, v, nx, ny, dx, dy) -> list:
     ''' This function takes an initial guess x0, and the right hand side values
     b and solves Ax = b iteratively using the conjugant gradient method'''

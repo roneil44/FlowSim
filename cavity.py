@@ -24,16 +24,20 @@ if __name__ == "__main__":
     #Initialize all global variables
     x_max = 1
     y_max = 1
-    number_x_points = 129
-    number_y_points = 129
+    number_x_points = 20
+    number_y_points = 20
     dx = x_max / number_x_points
     dy = y_max / number_y_points
 
-    v = 1/1000
+    v = 1/400
 
     # Solver Settings
-    total_time = 20
-    dt = .0025
+    total_time = 1
+    dt = .001
+    timesteps = total_time/dt
+    print(timesteps)
+    timesteps = int(timesteps)
+
     # Tolerances
     tol1 = 1e-3
     tol2 = 1e-4
@@ -55,6 +59,7 @@ if __name__ == "__main__":
 
     # CFL Number Calulation
     CFL = (top_wall[0]*dt/dx)
+    print(f'CFL Number: {CFL}')
 
     #Array initializations
     # Create as 2D arrays that get stacked into a single vector q
@@ -119,7 +124,8 @@ if __name__ == "__main__":
     X_corners, Y_corners = np.meshgrid(x_corners, y_corners, indexing='ij')
 
     ######### Lid Driven Cavity Flow Solver #########
-    t = 0
+    t_step = 0
+    #t = 0
     Error = []
     # First pass initilizations and Static Boundary conditions
     A_old = advect(u_vel, v_vel, dx, dy, top_wall, left_wall, right_wall, bottom_wall)
@@ -131,7 +137,7 @@ if __name__ == "__main__":
     #Counter on when to display time
     count = 0
 
-    while t < total_time:
+    while t_step < timesteps:
 
         q = pack_q(u_vel, v_vel, nx, ny)
         p = pack_p(pressures, nx, ny)
@@ -143,16 +149,16 @@ if __name__ == "__main__":
         #laplace = lap(u_vel, v_vel, dx, dy)
         
         # Partial RHS terms
-        full_advect = (dt/2)*(np.add(np.multiply(3,A_new), A_old))
+        full_advect = (dt/2)*(np.subtract(np.multiply(3,A_new), A_old))
 
         # Update non-linear advection term
         A_old = A_new
 
         # Full RHS
-        RHS = np.add(s, full_advect)
+        RHS = np.subtract(s, full_advect)
         RHS = np.add(RHS, bc_laplace)
         
-        if t == 0:
+        if t_step == 0:
             # First solve u_F doesn't exist
             u_F = conjugant_solve1(q, RHS, tol1, dt, v, nx, ny, dx, dy)
         else:
@@ -194,10 +200,11 @@ if __name__ == "__main__":
 
 
         # Increment timestep
-        t += dt
+        t_step += 1
+        #t += dt
         count += 1
         if count == 25:
-            print(t)
+            print(t_step/timesteps)
             count = 0
     
 
@@ -208,8 +215,6 @@ if __name__ == "__main__":
 
     # Collocate velocities
     U, V = collocate_velocity(u_vel, v_vel, nx, ny, top_wall, bottom_wall, right_wall, left_wall)
-
-    print(f'CFL Number: {CFL}')
 
     #### Write all solved values to file
     stored_vals = {
