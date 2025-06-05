@@ -33,7 +33,7 @@ X_u, Y_u = np.meshgrid(x_array_u[:-1], y_array, indexing='ij')
 x_c, y_c = get_points_on_circle(.25, nx, ny, dx, dy, ds)
 
 ## Calulate relationship between lagragian and cartesian points
-cart_x, cart_y = calc_influence(X_u.flatten(), Y_u.flatten(), x_c, y_c, ds)
+cart_x, cart_y = calc_influence(X_u.flatten(order='F'), Y_u.flatten(order='F'), x_c, y_c, ds)
 x_points = [tup[0] for tup in cart_x]
 y_points = [tup[0] for tup in cart_y]
 

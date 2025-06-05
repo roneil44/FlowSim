@@ -3,7 +3,7 @@
 import numpy as np
 import math
 
-def get_points_on_circle(radius:float, nx:int, ny:int, dx:float, dy:float, ds:float)-> tuple:
+def get_points_on_circle(radius:float, center_x:float, center_y:float, ds:float)-> tuple:
     '''This functions calulates the spatial discretizations of a circle and returns
     the x, y coordinates of each point on its perimeter. The point to point separation will be
     approximatley the same size as the cartesian grid discretization
@@ -12,8 +12,9 @@ def get_points_on_circle(radius:float, nx:int, ny:int, dx:float, dy:float, ds:fl
 
     
 
-    center_x = nx*dx/2
-    center_y = ny*dy/2
+    # center_x = nx*dx/2
+    # center_y = ny*dy/2
+    
 
     perimeter = math.pi*2*radius
 

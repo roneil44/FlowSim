@@ -58,6 +58,7 @@ if __name__ == "__main__":
 
     # CFL Number Calulation
     CFL = (top_wall[0]*dt/dx)
+    print(f'CFL Number: {CFL}')
 
     #Array initializations
     # Create as 2D arrays that get stacked into a single vector q
@@ -127,7 +128,7 @@ if __name__ == "__main__":
     ###### Immersed Boundary initializations
 
     # Add forces at points relevant to a circle
-    x_circ, y_circ = get_points_on_circle(.25, nx, ny, dx, dy, ds)
+    x_circ, y_circ = get_points_on_circle(.25, .4, .6, ds)
 
 
     # For immersed boundary method we need some boundary forces
@@ -148,11 +149,14 @@ if __name__ == "__main__":
     #             force_v[i,j] = .1
 
     ### Force on Circle
-    f_circ_u = calc_q(X_u.flatten(), Y_u.flatten(), x_circ, y_circ, ds)
-    f_circ_v = calc_q(X_v.flatten(), Y_v.flatten(), x_circ, y_circ, ds)
+    f_circ_u = calc_q(X_u.flatten(order='F'), Y_u.flatten(order='F'), x_circ, y_circ, ds)
+    f_circ_v = calc_q(X_v.flatten(order='F'), Y_v.flatten(order='F'), x_circ, y_circ, ds)
     
     for item in f_circ_u:
         f_q[item[0]] = .1
+    
+    for item in f_circ_v:
+        f_q[item[0]+(nx-1)*ny] = .1
     
     
     ######### Lid Driven Cavity Flow Solver #########
@@ -248,8 +252,6 @@ if __name__ == "__main__":
 
     # Collocate velocities
     U, V = collocate_velocity(u_vel, v_vel, nx, ny, top_wall, bottom_wall, right_wall, left_wall)
-
-    print(f'CFL Number: {CFL}')
 
     #### Write all solved values to file
     stored_vals = {
