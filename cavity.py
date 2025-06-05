@@ -24,16 +24,16 @@ if __name__ == "__main__":
     #Initialize all global variables
     x_max = 1
     y_max = 1
-    number_x_points = 20
-    number_y_points = 20
+    number_x_points = 129
+    number_y_points = 129
     dx = x_max / number_x_points
     dy = y_max / number_y_points
 
     v = 1/400
 
     # Solver Settings
-    total_time = 1
-    dt = .001
+    total_time = 15
+    dt = .0025
     timesteps = total_time/dt
     print(timesteps)
     timesteps = int(timesteps)

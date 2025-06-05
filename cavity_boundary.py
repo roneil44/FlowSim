@@ -149,14 +149,17 @@ if __name__ == "__main__":
     #             force_v[i,j] = .1
 
     ### Force on Circle
-    f_circ_u = calc_q(X_u.flatten(order='F'), Y_u.flatten(order='F'), x_circ, y_circ, ds)
-    f_circ_v = calc_q(X_v.flatten(order='F'), Y_v.flatten(order='F'), x_circ, y_circ, ds)
+    circ_u = calc_q(X_u.flatten(order='F'), Y_u.flatten(order='F'), x_circ, y_circ, ds)
+    circ_v = calc_q(X_v.flatten(order='F'), Y_v.flatten(order='F'), x_circ, y_circ, ds)
+
+    H_u = compute_H(circ_u, ds)
+    H_v = compute_H(circ_v, ds)
     
-    for item in f_circ_u:
-        f_q[item[0]] = .1
+    for item in H_u:
+        f_q[item[0]] = item[1]*.1
     
-    for item in f_circ_v:
-        f_q[item[0]+(nx-1)*ny] = .1
+    for item in H_v:
+        f_q[item[0]+(nx-1)*ny] = item[1]*.1
     
     
     ######### Lid Driven Cavity Flow Solver #########

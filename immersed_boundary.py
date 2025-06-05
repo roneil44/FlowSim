@@ -63,7 +63,7 @@ def calc_influence(cart_x:list, cart_y:list, la_x:list, la_y:list, ds:float):
 
 def calc_q(cart_x:list, cart_y:list, la_x:list, la_y:list, ds:float):
     '''This functions takes an array of points on a cartesian grid and an array points on the langragian grid it
-    then computes finds the values in each that are within 2.5*ds distance of one another
+    then computes finds the values in each that are within 1.5*ds distance of one another
     It returns a list of tuples that include the index in q for the cartesian point, x distance and y distance
     (q_index, x_dist, y_dist)
     '''
@@ -86,10 +86,50 @@ def calc_q(cart_x:list, cart_y:list, la_x:list, la_y:list, ds:float):
         for j in range(len(cart_x)):
             dist_x = abs(la_x[i]- cart_x[j])
             dist_y = abs(la_y[i]- cart_y[j])
-            if dist_x <= 2.5*ds and dist_y <= 2.5*ds:
+            if dist_x <= 1.5*ds and dist_y <= 1.5*ds:
                 results.append((j, dist_x, dist_y))
 
 
     return(results)
 
+def compute_H(circ:list, ds:float) -> list:
+    '''Computes the H operator for the immersed boundary method
+    circ should contain a list of tuples (index, x_dist, y_dist)
+    and H will retunr the index and force (index, force)'''
+    H = []
+    beta = ds
+    
+
+    for i in range(len(circ)):
+
+        # print(f'dx {circ[i][1]}')
+        # print(f'ds {ds}')
+        # print(f'ds/2 {ds/2}')
+        # print(f'ds/ds = {circ[i][1]/ds}')
+
+        # Compute d3 related to distances
+        
+        d3_x = d3(circ[i][1], ds)
+        d3_y = d3(circ[i][2], ds)
+    
+
+        H.append((circ[i][0], beta*d3_x*d3_y)) 
+        
+    return H
+
+def compute_E(circ:list, ds:float)->list:
+    '''Compute the interpolated velocity from the cartesian grid onto the lagragian points'''
+
+
+
+    pass
+
+def d3(dist:float, ds:float):
+    '''Computes d3'''
+    if dist <= ds*.5:
+        d_3 = 1/3*(1+math.sqrt(-3 * (dist/ds)**2 + 1))
+    else:
+        d_3 = 1/6*(5 - 3*dist/ds - math.sqrt(-3 * (1- dist/ds)**2 + 1) )
+
+    return d_3
 
