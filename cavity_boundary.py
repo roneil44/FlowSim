@@ -35,8 +35,8 @@ if __name__ == "__main__":
 
 
     # Solver Settings
-    total_time = .005
-    dt = .0025
+    total_time = 1
+    dt = .002
     # Tolerances
     tol1 = 1e-3
     tol2 = 1e-4
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
 
     ## Boundary Wall velocities ##
-    top_wall = (0, 0) # u, v velocity
+    top_wall = (1, 0) # u, v velocity
     left_wall = (0, 0)
     right_wall = (0, 0)
     bottom_wall = (0 , 0)
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     #Array initializations
     # Create as 2D arrays that get stacked into a single vector q
-    u_vel = np.zeros((nx,ny)) #Slightly larger than needed but makes iteration easier
+    u_vel = np.ones((nx,ny)) #Slightly larger than needed but makes iteration easier
     v_vel = np.zeros((nx,ny)) #Slightly larger than needed but makes iteration easier
     pressures = np.zeros((nx, ny)) #Slightly larger, one pressure should be pinned
 
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     ###### Immersed Boundary initializations
 
     # Add forces at points relevant to a circle
-    x_circ, y_circ = get_points_on_circle(.25, .4, .6, ds)
+    x_circ, y_circ = get_points_on_circle(.25, .5, .5, ds)
 
 
     # For immersed boundary method we need some boundary forces
@@ -139,28 +139,33 @@ if __name__ == "__main__":
 
     # Apply a force for some interior points for testing
     ### Force as Rectangle
-    # for i in range(nx):
-    #     for j in range(ny):
-    #         # print(f'i= {i} nx*.3 ={nx*.3} nx*.7 ={nx*.7}')
-    #         # print(f'j= {j} ny*.3 ={ny*.3}')
-    #         if i > nx*.3 and i < nx*.7 and j > ny*.3 and j<ny*.7:
-    #             #print('here')
-    #             force_u[i,j] = .1
-    #             force_v[i,j] = .1
+    for i in range(nx):
+        for j in range(ny):
+            # print(f'i= {i} nx*.3 ={nx*.3} nx*.7 ={nx*.7}')
+            # print(f'j= {j} ny*.3 ={ny*.3}')
+            if i > nx*.3 and i < nx*.7 and j > ny*.3 and j<ny*.7:
+                #print('here')
+                force_u[i,j] = .1
+                force_v[i,j] = .1
 
     ### Force on Circle
     circ_u = calc_q(X_u.flatten(order='F'), Y_u.flatten(order='F'), x_circ, y_circ, ds)
     circ_v = calc_q(X_v.flatten(order='F'), Y_v.flatten(order='F'), x_circ, y_circ, ds)
 
-    H_u = compute_H(circ_u, ds)
-    H_v = compute_H(circ_v, ds)
+    #print(circ_u)
+
+    # H_x = compute_H(circ_u, ds)
+    # H_v = compute_H(circ_v, ds)
     
-    for item in H_u:
-        f_q[item[0]] = item[1]*.1
+    #print(H_u[-1])
+    # for item in H_u:
+    #     f_q[item[1]] = .1
     
-    for item in H_v:
-        f_q[item[0]+(nx-1)*ny] = item[1]*.1
-    
+    # for item in H_v:
+    #     f_q[item[1]+(nx-1)*ny] = .1
+    # circle_indexs = [i[0] for i in circ_u]
+    # #print(circle_indexs)
+    # print(Eu(u_vel.flatten(order='F'), circ_u, ds))
     
     ######### Lid Driven Cavity Flow Solver #########
     t = 0
@@ -196,8 +201,31 @@ if __name__ == "__main__":
         RHS = np.subtract(s, full_advect)
         RHS = np.add(RHS, bc_laplace)
 
-        #Add immersed Boundary
-        RHS = np.add(RHS, f_q)
+        ### Compute immersed boundary forces
+        RHS_x, RHS_y = unpack_q(RHS, nx, ny)
+        F_u = -1*Eu(u_vel.flatten(order='F'), circ_u, ds)
+        F_v = -1*Eu(v_vel.flatten(order='F'), circ_v, ds)
+        F_x = -1*Eu(RHS_x.flatten(order='F'), circ_u, ds)
+        F_y = -1*Eu(RHS_y.flatten(order='F'), circ_v, ds)
+
+        F_x = np.add(F_u,F_x)
+        F_x = np.subtract(F_v,F_y)
+        
+        # Apply this back to the RHS
+        HF_x = HF(F_x, circ_u, ds, (nx-1)*ny)
+        HF_y = HF(F_y, circ_v, ds, (ny-1)*nx)
+
+        H = np.append(HF_x, HF_y)
+        #print(H)
+
+        RHS = np.add(RHS, H)
+
+        # # Compute Boundary forces
+        # RHS_x, RHS_y = unpack_q(RHS, nx, ny)
+
+
+        # #Add immersed Boundary
+        # RHS = np.add(RHS, f_q)
         
         if t == 0:
             # First solve u_F doesn't exist
@@ -248,7 +276,8 @@ if __name__ == "__main__":
             count = 0
     
 
-
+   
+    
     # # Temp for troubleshooting
     #u_vel, v_vel = unpack_q(u_F, nx, ny)
     #print(u_vel, v_vel)
