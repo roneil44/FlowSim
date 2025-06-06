@@ -2,6 +2,7 @@
 
 import numpy as np
 import math
+from numba import jit
 
 def get_points_on_circle(radius:float, center_x:float, center_y:float, ds:float)-> tuple:
     '''This functions calulates the spatial discretizations of a circle and returns
@@ -115,12 +116,13 @@ def compute_H(circ:list, ds:float) -> list:
         
     return H
 
+@jit()
 def HF(F, circ, ds, length):
     '''Computes HF'''
 
     HF = np.zeros(length)
 
-    beta = ds
+    beta = ds**2
     
 
     for point in circ:
@@ -131,7 +133,7 @@ def HF(F, circ, ds, length):
     return HF
 
 
-
+@jit()
 def d3(dist:float, ds:float):
     '''Computes d3'''
     if abs(dist) <= ds*.5:
@@ -144,13 +146,14 @@ def d3(dist:float, ds:float):
     return d_3
 
 
-
+@jit()
 def Eu(u_vels, circ, ds):
-    '''Interpolates the velociites from the cartesian grid to the Lagragian'''
+    '''Interpolates the velocities from the cartesian grid to the Lagragian'''
 
     #print(circ[-1][0])
     q_b = np.zeros(circ[-1][0]+1)
     alpha = ds**2
+    # alpha = 1
     
 
     for point in circ:

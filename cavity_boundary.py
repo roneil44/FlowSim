@@ -25,8 +25,8 @@ if __name__ == "__main__":
     #Initialize all global variables
     x_max = 1
     y_max = 1
-    number_x_points = 80
-    number_y_points = 80
+    number_x_points = 25
+    number_y_points = 25
     dx = x_max / number_x_points
     dy = y_max / number_y_points
     ds = (dx+dy)/2
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     # Solver Settings
     total_time = 1
-    dt = .002
+    dt = .0025
     # Tolerances
     tol1 = 1e-3
     tol2 = 1e-4
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     ###### Immersed Boundary initializations
 
     # Add forces at points relevant to a circle
-    x_circ, y_circ = get_points_on_circle(.25, .5, .5, ds)
+    x_circ, y_circ = get_points_on_circle(.2, .65, .5, ds)
 
 
     # For immersed boundary method we need some boundary forces
@@ -149,23 +149,12 @@ if __name__ == "__main__":
                 force_v[i,j] = .1
 
     ### Force on Circle
-    circ_u = calc_q(X_u.flatten(order='F'), Y_u.flatten(order='F'), x_circ, y_circ, ds)
-    circ_v = calc_q(X_v.flatten(order='F'), Y_v.flatten(order='F'), x_circ, y_circ, ds)
+    x_loc_u, y_loc_u = np.meshgrid(np.linspace(0,x_max-dx,nx), np.linspace(dy/2,y_max-dy/2,ny), indexing='ij')
+    x_loc_v, y_loc_v = np.meshgrid(np.linspace(dx/2,x_max-dx/2,nx), np.linspace(0,y_max-dy,ny), indexing='ij')
 
-    #print(circ_u)
+    circ_u = calc_q(x_loc_u.flatten(order='F'), y_loc_u.flatten(order='F'), x_circ, y_circ, ds)
+    circ_v = calc_q(x_loc_v.flatten(order='F'), y_loc_v.flatten(order='F'), x_circ, y_circ, ds)
 
-    # H_x = compute_H(circ_u, ds)
-    # H_v = compute_H(circ_v, ds)
-    
-    #print(H_u[-1])
-    # for item in H_u:
-    #     f_q[item[1]] = .1
-    
-    # for item in H_v:
-    #     f_q[item[1]+(nx-1)*ny] = .1
-    # circle_indexs = [i[0] for i in circ_u]
-    # #print(circle_indexs)
-    # print(Eu(u_vel.flatten(order='F'), circ_u, ds))
     
     ######### Lid Driven Cavity Flow Solver #########
     t = 0
@@ -201,25 +190,6 @@ if __name__ == "__main__":
         RHS = np.subtract(s, full_advect)
         RHS = np.add(RHS, bc_laplace)
 
-        ### Compute immersed boundary forces
-        RHS_x, RHS_y = unpack_q(RHS, nx, ny)
-        F_u = -1*Eu(u_vel.flatten(order='F'), circ_u, ds)
-        F_v = -1*Eu(v_vel.flatten(order='F'), circ_v, ds)
-        F_x = -1*Eu(RHS_x.flatten(order='F'), circ_u, ds)
-        F_y = -1*Eu(RHS_y.flatten(order='F'), circ_v, ds)
-
-        F_x = np.add(F_u,F_x)
-        F_x = np.subtract(F_v,F_y)
-        
-        # Apply this back to the RHS
-        HF_x = HF(F_x, circ_u, ds, (nx-1)*ny)
-        HF_y = HF(F_y, circ_v, ds, (ny-1)*nx)
-
-        H = np.append(HF_x, HF_y)
-        #print(H)
-
-        RHS = np.add(RHS, H)
-
         # # Compute Boundary forces
         # RHS_x, RHS_y = unpack_q(RHS, nx, ny)
 
@@ -233,14 +203,46 @@ if __name__ == "__main__":
         else:
             u_F = conjugant_solve1(u_F, RHS, tol1, dt, v, nx, ny, dx, dy)
         
-        ###### Second Fractional Step
+        #### Add immersed Boundary
+
         u_F_u, u_F_v = unpack_q(u_F, nx, ny)
 
+        ### Compute Direct Forcing Boundary #####
+        RHS_x, RHS_y = unpack_q(RHS, nx, ny)
+        # F_u = -1*Eu(u_vel.flatten(order='F'), circ_u, ds)
+        # F_v = -1*Eu(v_vel.flatten(order='F'), circ_v, ds)
+        FB_x = Eu(RHS_x.flatten(order='F'), circ_u, ds)
+        FB_y = Eu(RHS_y.flatten(order='F'), circ_v, ds)
+
+        ub_x = (1/dt)*Eu(u_F_u.flatten(order='F'), circ_u, ds)
+        ub_y = (1/dt)*Eu(u_F_v.flatten(order='F'), circ_v, ds)
+
+        FB_x = -np.add(ub_x, FB_x)
+        FB_y = -np.add(ub_y, FB_y)
+
+        # Apply this back to the RHS
+        # HF_x = HF(np.ones(len(x_circ))*.1, circ_u, ds, (nx-1)*ny)
+        # HF_y = HF(np.zeros(len(x_circ))*.1, circ_v, ds, (ny-1)*nx)
+
+        HF_x = HF(FB_x, circ_u, ds, nx*ny)
+        HF_y = HF(FB_y, circ_v, ds, ny*nx)
+
+        H = np.append(HF_x, HF_y)
+        HX, HY = unpack_q2(H, nx, ny)
+        H = pack_q(HX, HY, nx, ny)
+        
+        u_F = np.add(u_F, H*dt)
+
+
+
+        ###### Second Fractional Step
+        u_F_u, u_F_v = unpack_q(u_F, nx, ny)
         divergence = (1/dt)*div(u_F_u, u_F_v, dx, dy)
         
         RHS2 = np.add(divergence, divergence_boundary)
         
         p = conjugant_solve2(p, RHS2, tol2, dt, v, nx, ny, dx, dy)
+
 
         ###### Third Step solve
         # Pressure term
@@ -330,6 +332,7 @@ if __name__ == "__main__":
     plt.quiver(X_corners, Y_corners, U, V)
     plt.xlim(0,x_max)
     plt.ylim(0,y_max)
+    plt.plot(x_circ,y_circ, 'k')
 
     # plt.figure()
     # plt.contourf(X_u, Y_u, u_vel)
@@ -340,6 +343,7 @@ if __name__ == "__main__":
     plt.contourf(X_corners, Y_corners, U)
     plt.colorbar()
     plt.title("U Contour")
+    plt.plot(x_circ,y_circ, 'k')
 
     # plt.figure()
     # plt.contourf(X_v, Y_v, v_vel[1::])
@@ -350,6 +354,7 @@ if __name__ == "__main__":
     plt.contourf(X_corners, Y_corners, V)
     plt.colorbar()
     plt.title("V contour")
+    plt.plot(x_circ,y_circ, 'k')
 
 
     plt.show()

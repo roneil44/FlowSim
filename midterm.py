@@ -20,11 +20,12 @@ if __name__ == "__main__":
     #Initilize all global variables
     x_max = 1
     y_max = 1
-    number_x_points = 20
-    number_y_points = 20
+    number_x_points = 1000
+    number_y_points = 1000
     dx = x_max / number_x_points
     dy = y_max / number_y_points
 
+    print(f'dx {dx}')
     ## Assign values to each global variable
     # Mesh conditions
     nx = number_x_points
@@ -196,8 +197,9 @@ if __name__ == "__main__":
 
     grad_u_avg_error = np.sum(grad_u_error) / (len(grad_u_error) * len(grad_u_error[0]))
     grad_v_avg_error = np.sum(grad_v_error) / (len(grad_v_error) * len(grad_v_error[0]))
-        
-
+   
+    print(f'grad_u {grad_u_avg_error}')
+    print(f'grad_v {grad_v_avg_error}')
     ### Divergence Check ####
 
     # Check divergence
@@ -225,6 +227,8 @@ if __name__ == "__main__":
     div_error = np.absolute(np.subtract(exact_divergence, num_div_array))
     div_error_sum = np.sum(div_error)
     div_error_avg = div_error_sum/(len(div_error) * len(div_error[0]))
+
+    print(f'div {div_error_avg}')
     ####
 
     ### Laplacian Check ####
@@ -288,6 +292,8 @@ if __name__ == "__main__":
     lap_u_avg_error = np.sum(lap_u_error) / (len(lap_u_error) * len(lap_u_error[0]))
     lap_v_avg_error = np.sum(lap_v_error) / (len(lap_v_error) * len(lap_v_error[0]))
 
+    print(f'lap_u {lap_u_avg_error}')
+    print(f'lap_v {lap_v_avg_error}')
     #######
 
     #### Non Linear Advection Check ####
@@ -352,6 +358,8 @@ if __name__ == "__main__":
     adv_u_avg_error = np.sum(adv_u_error) / (len(adv_u_error) * len(adv_u_error[0]))
     adv_v_avg_error = np.sum(adv_v_error) / (len(adv_v_error) * len(adv_v_error[0]))
 
+    print(f'adv_u {adv_u_avg_error}')
+    print(f'adv_v {adv_v_avg_error}')
 
     ###### ########
 
@@ -464,34 +472,34 @@ if __name__ == "__main__":
     # # #### Laplacian Plots #####
 
     # #Laplacian U plots
-    plt.figure()
-    plt.contourf(X_u, Y_u, laplace_u)
-    plt.title('Exact Laplacian U-Component')
-    plt.colorbar(label='Laplace')
-    plt.xlim((0,x_max))
-    plt.ylim((0,y_max))
+    # plt.figure()
+    # plt.contourf(X_u, Y_u, laplace_u)
+    # plt.title('Exact Laplacian U-Component')
+    # plt.colorbar(label='Laplace')
+    # plt.xlim((0,x_max))
+    # plt.ylim((0,y_max))
 
-    plt.figure()
-    plt.contourf(X_u, Y_u, num_lap_array_u)
-    plt.title('Numeric Laplacian U-Component')
-    plt.colorbar(label='Laplace')
-    plt.xlim((0,x_max))
-    plt.ylim((0,y_max))
+    # plt.figure()
+    # plt.contourf(X_u, Y_u, num_lap_array_u)
+    # plt.title('Numeric Laplacian U-Component')
+    # plt.colorbar(label='Laplace')
+    # plt.xlim((0,x_max))
+    # plt.ylim((0,y_max))
 
-    # Laplacian V plots
-    plt.figure()
-    plt.contourf(X_v, Y_v, laplace_v)
-    plt.title('Exact Laplacian V-Component')
-    plt.colorbar(label='Laplace')
-    plt.xlim((0,x_max))
-    plt.ylim((0,y_max))
+    # # Laplacian V plots
+    # plt.figure()
+    # plt.contourf(X_v, Y_v, laplace_v)
+    # plt.title('Exact Laplacian V-Component')
+    # plt.colorbar(label='Laplace')
+    # plt.xlim((0,x_max))
+    # plt.ylim((0,y_max))
 
-    plt.figure()
-    plt.contourf(X_v, Y_v, num_lap_array_v)
-    plt.title('Numeric Laplacian V-Component')
-    plt.colorbar(label='Laplace')
-    plt.xlim((0,x_max))
-    plt.ylim((0,y_max))
+    # plt.figure()
+    # plt.contourf(X_v, Y_v, num_lap_array_v)
+    # plt.title('Numeric Laplacian V-Component')
+    # plt.colorbar(label='Laplace')
+    # plt.xlim((0,x_max))
+    # plt.ylim((0,y_max))
 
     # # #print(np.shape(Y_pressures))
     # # plt.figure()
@@ -506,21 +514,21 @@ if __name__ == "__main__":
     # # plt.xlim((0,x_max))
     # # plt.ylim((0,y_max))
 
-    plt.figure()
-    plt.contourf(X_u, Y_u, lap_u_error, norm=matplotlib.colors.LogNorm())
-    plt.title('Laplacian U-Component Error')
-    plt.colorbar(label='Error')
-    plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_u_avg_error, 5)}', (.1*x_max, .1*y_max))
-    plt.xlim((0,x_max))
-    plt.ylim((0,y_max))
+    # plt.figure()
+    # plt.contourf(X_u, Y_u, lap_u_error, norm=matplotlib.colors.LogNorm())
+    # plt.title('Laplacian U-Component Error')
+    # plt.colorbar(label='Error')
+    # plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_u_avg_error, 5)}', (.1*x_max, .1*y_max))
+    # plt.xlim((0,x_max))
+    # plt.ylim((0,y_max))
 
-    plt.figure()
-    plt.contourf(X_v, Y_v, lap_v_error, norm=matplotlib.colors.LogNorm())
-    plt.title('Laplacian V-Component Error')
-    plt.colorbar(label='Error')
-    plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_v_avg_error, 5)}', (.1*x_max, .1*y_max))
-    plt.xlim((0,x_max))
-    plt.ylim((0,y_max))
+    # plt.figure()
+    # plt.contourf(X_v, Y_v, lap_v_error, norm=matplotlib.colors.LogNorm())
+    # plt.title('Laplacian V-Component Error')
+    # plt.colorbar(label='Error')
+    # plt.annotate(f'dx = {dx}\ndy = {dy}\navg point error = {round(lap_v_avg_error, 5)}', (.1*x_max, .1*y_max))
+    # plt.xlim((0,x_max))
+    # plt.ylim((0,y_max))
 
     # # ### Non-Linear Advection Plots ####
 

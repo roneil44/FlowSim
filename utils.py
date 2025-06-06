@@ -89,6 +89,31 @@ def unpack_q(q_vels, nx, ny):
         
     return U, V
 
+@jit()
+def unpack_q2(q_vels, nx, ny):
+    ''' Takes the oversized q velocity array and unpacks it into 2D vectors U and V
+    Includes the boundary values defined in the initial definition of u_vel and v_vel'''
+    
+    # Repack it into 2d array for plotting
+    U = np.zeros((nx, ny))
+    V = np.zeros((nx, ny))
+    
+    index = 0
+
+    # Build 2D U array
+    for j in range(ny):
+        for i in range(nx):
+            U[i,j] = q_vels[index]
+            index += 1
+
+    # Build 2D V array
+    for j in range(ny):
+        for i in range(nx):
+            V[i,j] = q_vels[index]
+            index += 1
+        
+    return U, V
+
 @jit
 def unpack_p(p, nx, ny):
     '''Repack p back into a 2D array'''
