@@ -25,7 +25,7 @@ c = 1
 RHS_func = lambda dfdx: -c*dfdx
 
 #Initializations
-num_points = 200
+num_points = 300
 lower = 0
 upper = 1
 dx = (upper - lower) / num_points
@@ -282,8 +282,9 @@ def get_dfdx(delta_x, scheme:str, values, i):
 def calculate_L2_error(exact_solution, estimate_solution):
     # Assumes solutions have same length
     error = 0
-    for i in range(len(exact_solution)):
-        error += (np.linalg.norm(exact_solution[i] - estimate_solution[i]))
+    exact_solution= np.array(exact_solution)
+    estimate_solution= np.array(estimate_solution)
+    error = (np.linalg.norm(exact_solution - estimate_solution))
     return error
 
 
@@ -356,39 +357,46 @@ plt.legend(['Initial Values', f'FE Upwind',f'RK 4', f'Heuns', f'BE', 'Exact Solu
 
 
 ##### Plot different solvers vs CFL number ######
-# total_time = .2
-# cfl_high = 0
-# cfl_low = -3
-# num_points = 10
+total_time = .2
+cfl_high = 0
+cfl_low = -3
+num_points = 10
 
-# cfl_numbers = np.logspace(cfl_low, cfl_high, num_points)
-# cfl_numbers = cfl_numbers[::-1]
-# error = []
+cfl_numbers = np.logspace(cfl_low, cfl_high, num_points)
+print(cfl_numbers)
+cfl_numbers = cfl_numbers[::-1]
+errorH = []
+errorE = []
+exact_vals = []
 
-# exact_vals = []
+#Exact Solution
+for point in grid:
+    exact_vals.append(math.cos((point-(total_time/c))*2*math.pi))
 
-# #Exact Solution
-# for point in grid:
-#     exact_vals.append(math.cos((point-(total_time/c))*2*math.pi))
+for cfl in cfl_numbers:
+    dt = cfl*dx/c
+    #print(dt)
+    timesteps = total_time/dt
+    print(f'# timesteps = {timesteps}')
+    solutionH = (Heuns2(starting_vals, dx, dt, timesteps))
+    solutionE = (Backward_Euler(RHS_func, starting_vals, dx, dt=dt, total_time_steps=timesteps, spatial_method='central'))
+    errorH.append(calculate_L2_error(exact_vals, solutionH)/len(solutionH))
+    print(f'Error = {errorH[-1]}')
+    errorE.append(calculate_L2_error(exact_vals, solutionE)/len(solutionE))
+    print(f'Error = {errorE[-1]}')
 
-# for cfl in cfl_numbers:
-#     dt = cfl*dx/c
-#     #print(dt)
-#     timesteps = total_time/dt
-#     print(f'# timesteps = {timesteps}')
-#     solution = (Heuns2(starting_vals, dx, dt, timesteps))
-#     error.append(calculate_L2_error(exact_vals, solution)/len(solution))
-#     print(f'Error = {error[-1]}')
-
-# plt.figure()
-# plt.loglog(cfl_numbers, error)
-# plt.xlabel('CFL Number')
-# plt.ylabel('L2 Per Point Error')
+plt.figure()
+plt.loglog(cfl_numbers, errorH, '*')
+plt.loglog(cfl_numbers, errorE, '*')
+plt.legend(['Heuns Method', 'Backward Euler'])
+plt.xlabel('CFL Number')
+plt.ylabel('L2 Per Point Error')
 
 
-# plt.figure()
-# plt.plot(grid, solution)
-# plt.plot(grid, exact_vals)
-# plt.legend(['Numeric', 'Exact'])
+plt.figure()
+plt.plot(grid, solutionH)
+plt.plot(grid, solutionE)
+plt.plot(grid, exact_vals)
+plt.legend(['Numeric', 'Exact'])
 
 plt.show()
